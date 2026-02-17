@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ayuda - Universidad CNCI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+
+    <script>
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cnciAzul: '#2a6aff',
+                        cnciNaranja: '#ff8500',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7fe;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #2a6aff 0%, #1a49b8 100%);
+        }
+
+        .category-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px);
+            border-color: #ff8500;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 800px;
+        }
+
+        .accordion-item.active .chevron {
+            transform: rotate(180deg);
+            color: #ff8500;
+        }
+
+        .btn-naranja {
+            background-color: #ff8500;
+            transition: all 0.3s;
+        }
+        .btn-naranja:hover {
+            background-color: #e67700;
+            transform: scale(1.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #2a6aff; border-radius: 10px; }
+
+        /* Chat Styles */
+        #chat-window {
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .message-bubble {
+            max-width: 85%;
+            border-radius: 1.25rem;
+        }
+        .bot-msg { background-color: #f1f5f9; border-bottom-left-radius: 0.25rem; }
+        .user-msg { background-color: #2a6aff; color: white; border-bottom-right-radius: 0.25rem; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-white py-4 px-6 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-12 md:h-14">
+            <div class="hidden md:flex space-x-6 text-sm font-medium text-slate-600">
+                <a href="#" class="hover:text-cnciAzul">Portal Alumnos</a>
+                <a href="#" class="hover:text-cnciAzul">Biblioteca</a>
+                <a href="#" class="hover:text-cnciAzul">Blackboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white pb-32 pt-16 px-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div class="absolute top-10 left-10 text-6xl rotate-12">🎓</div>
+            <div class="absolute bottom-10 right-10 text-6xl -rotate-12">💻</div>
+            <div class="absolute top-1/2 left-1/4 text-4xl">📚</div>
+        </div>
+        
+        <div class="max-w-4xl mx-auto text-center animate__animated animate__fadeInDown">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">¿Qué duda resolvemos hoy? 🚀</h1>
+            <p class="text-blue-100 mb-10 text-lg opacity-90">Tu guía inteligente de la Universidad CNCI Virtual</p>
+            
+            <div class="relative max-w-2xl mx-auto">
+                <input type="text" id="search-input" placeholder="Escribe tu duda (ej: Blackboard, Extraordinario...)" 
+                       class="w-full py-5 px-8 rounded-2xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg">
+                <i class="fas fa-search absolute right-6 top-1/2 -translate-y-1/2 text-cnciAzul text-xl"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 -mt-20 mb-24 relative z-10">
+        
+        <!-- Categories -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 animate__animated animate__fadeInUp">
+            <button id="cat-ingreso" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-cnciAzul">
+                <div class="w-16 h-16 bg-blue-50 text-cnciAzul rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-paper-plane text-2xl"></i>
+                </div>
+                <span class="font-bold text-slate-700">Primeros Pasos</span>
+            </button>
+            <button id="cat-academia" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-cnciNaranja">
+                <div class="w-16 h-16 bg-orange-50 text-cnciNaranja rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-graduate text-2xl"></i>
+                </div>
+                <span class="font-bold text-slate-700">Academia</span>
+            </button>
+            <button id="cat-digital" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-indigo-500">
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-wifi text-2xl"></i>
+                </div>
+                <span class="font-bold text-slate-700">Campus Digital</span>
+            </button>
+            <button id="cat-tramites" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-slate-400">
+                <div class="w-16 h-16 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-signature text-2xl"></i>
+                </div>
+                <span class="font-bold text-slate-700">Trámites</span>
+            </button>
+        </div>
+
+        <!-- FAQ Container -->
+        <div class="bg-white rounded-[2rem] shadow-xl border border-white p-6 md:p-12 animate__animated animate__fadeIn">
+            <div class="flex items-center justify-between mb-10 border-b border-slate-100 pb-6">
+                <div>
+                    <h2 id="section-title" class="text-3xl font-extrabold text-slate-800">Preguntas Frecuentes ✨</h2>
+                    <p class="text-slate-500 mt-1">Sincronizado en tiempo real</p>
+                </div>
+                <span class="hidden md:inline-block bg-orange-100 text-cnciNaranja px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
+                    Soporte 24/7
+                </span>
+            </div>
+
+            <div id="faq-list" class="space-y-4">
+                <!-- Se llena dinámicamente -->
+                <div class="py-10 text-center text-slate-400 italic">Cargando base de datos...</div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="empty-search" class="hidden py-20 text-center">
+                <div class="text-6xl mb-4">🔍</div>
+                <p class="text-xl font-bold text-slate-400">No encontramos resultados</p>
+                <button id="reset-btn" class="mt-4 text-cnciAzul font-bold hover:underline">Ver todas</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo White" class="h-10 grayscale brightness-200">
+            <p class="text-sm">© 2026 Universidad CNCI Virtual. Todos los derechos reservados.</p>
+            <button id="admin-lock-btn" class="opacity-20 hover:opacity-100 transition-opacity text-slate-500">
+                <i class="fas fa-lock text-xs"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white w-full max-w-5xl rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate__animated animate__zoomIn">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-bold flex items-center"><i class="fas fa-tools mr-3 text-cnciAzul"></i> Panel Admin (Firebase)</h3>
+                <button id="close-admin-btn" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div class="flex flex-wrap gap-4 mb-8">
+                    <button id="add-faq-btn" class="btn-naranja text-white px-6 py-2 rounded-xl font-bold text-sm">
+                        <i class="fas fa-plus mr-2"></i> Nueva FAQ
+                    </button>
+                    <button id="export-csv-btn" class="bg-cnciAzul text-white px-6 py-2 rounded-xl font-bold text-sm">
+                        <i class="fas fa-file-export mr-2"></i> Exportar CSV
+                    </button>
+                    <label class="bg-emerald-500 text-white px-6 py-2 rounded-xl font-bold text-sm cursor-pointer">
+                        <i class="fas fa-file-import mr-2"></i> Importar CSV
+                        <input type="file" id="csv-import" class="hidden" accept=".csv">
+                    </label>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-100 text-slate-600 font-bold">
+                            <tr>
+                                <th class="p-4">Categoría</th>
+                                <th class="p-4">Pregunta</th>
+                                <th class="p-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chat-window" class="fixed bottom-28 right-8 w-[90vw] md:w-96 h-[70vh] max-h-[600px] bg-white rounded-[2rem] shadow-2xl z-50 overflow-hidden hidden animate__animated animate__fadeInUp">
+        <div class="gradient-bg p-6 text-white flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div><h4 class="font-bold">Asistente CNCI</h4><span class="text-xs opacity-75">IA Generativa</span></div>
+            </div>
+            <button id="close-chat-btn" class="text-white/60 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/50"></div>
+        <div class="p-4 bg-white border-t flex gap-2">
+            <input type="text" id="user-input" placeholder="Pregunta algo..." class="bg-slate-100 w-full rounded-2xl px-4 py-2 outline-none text-sm">
+            <button id="send-btn" class="text-cnciAzul p-2"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <button id="toggle-chat-btn" class="fixed bottom-8 right-8 w-16 h-16 gradient-bg text-white rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-110 transition-all">
+        <i class="fas fa-comment-dots text-2xl"></i>
+    </button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8jIUPHKmcKy7eO1aq6eS4ZJ6kfq4zrBo",
+            authDomain: "apppaneldesupcallcenter.firebaseapp.com",
+            projectId: "apppaneldesupcallcenter",
+            storageBucket: "apppaneldesupcallcenter.firebasestorage.app",
+            messagingSenderId: "1091325080953",
+            appId: "1:1091325080953:web:14fd225a15f532f92feba8",
+            measurementId: "G-MGBBK91GZR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const apiKey = ""; // Gemini API
+
+        let user = null;
+        let faqData = [];
+
+        // 1. AUTENTICACIÓN (Regla 3)
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) { console.error("Auth error", err); }
+        };
+
+        // 2. ESCUCHA DE DATOS EN TIEMPO REAL (Regla 1 y 2)
+        const setupDatabaseListener = (currentUser) => {
+            if (!currentUser) return;
+            
+            // Ruta obligatoria: artifacts/{appId}/public/data/{collection}
+            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
+            
+            onSnapshot(faqsRef, (snapshot) => {
+                faqData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFAQs();
+                renderAdminTable();
+            }, (error) => {
+                console.error("Firestore error:", error);
+            });
+        };
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            if (u) setupDatabaseListener(u);
+        });
+
+        initAuth();
+
+        // 3. UI RENDER FUNCTIONS
+        function renderFAQs(data = faqData) {
+            const list = document.getElementById('faq-list');
+            const empty = document.getElementById('empty-search');
+            list.innerHTML = '';
+            
+            if (data.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            data.forEach(faq => {
+                const item = document.createElement('div');
+                item.className = 'accordion-item border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md animate__animated animate__fadeIn';
+                item.innerHTML = `
+                    <button class="w-full flex items-center justify-between p-5 text-left bg-white" onclick="this.parentElement.classList.toggle('active')">
+                        <span class="font-bold pr-4 flex items-center text-slate-700">
+                            <span class="mr-3 text-xl">${faq.emoji || '🔹'}</span> ${faq.question}
+                        </span>
+                        <i class="fas fa-chevron-down text-slate-300 chevron transition-transform"></i>
+                    </button>
+                    <div class="accordion-content bg-slate-50/50">
+                        <div class="p-6 border-t border-slate-100 text-slate-600 leading-relaxed">${faq.answer}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function renderAdminTable() {
+            const body = document.getElementById('admin-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+            faqData.forEach(faq => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-slate-50 text-xs md:text-sm";
+                tr.innerHTML = `
+                    <td class="p-4 uppercase font-bold text-cnciAzul">${faq.category}</td>
+                    <td class="p-4 font-medium">${faq.question}</td>
+                    <td class="p-4">
+                        <button class="text-red-500 hover:bg-red-50 p-2 rounded-lg delete-btn" data-id="${faq.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+
+            // Listeners para borrar
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (confirm("¿Eliminar de Firebase?")) {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', btn.dataset.id));
+                    }
+                }
+            });
+        }
+
+        // 4. OPERACIONES FIREBASE
+        async function addFAQ() {
+            const q = prompt("Pregunta:");
+            const a = prompt("Respuesta:");
+            const c = prompt("Categoría (ingreso, academia, digital, tramites):", "academia");
+            if (!q || !a) return;
+
+            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
+            await addDoc(faqsRef, {
+                question: q,
+                answer: a,
+                category: c || 'academia',
+                emoji: '✨',
+                createdAt: Date.now()
+            });
+        }
+
+        // 5. CHATBOT GEMINI
+        async function sendChatMessage() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendChatMessage('user', text);
+            input.value = '';
+            const typingId = appendChatMessage('bot', 'Consultando base de datos...');
+
+            try {
+                const context = faqData.map(f => `Q: ${f.question} A: ${f.answer}`).join('\n');
+                const systemPrompt = `Eres un asistente de la Universidad CNCI Virtual. Responde basándote en esta base de datos:\n${context}`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const result = await response.json();
+                const botText = result.candidates?.[0]?.content?.parts?.[0]?.text || "No pude procesar eso.";
+                document.getElementById(typingId).innerText = botText;
+            } catch (e) { document.getElementById(typingId).innerText = "Error de conexión."; }
+        }
+
+        function appendChatMessage(role, text) {
+            const id = 'msg-' + Date.now();
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            div.innerHTML = `<div id="${id}" class="message-bubble ${role === 'user' ? 'user-msg' : 'bot-msg'} p-4 text-xs animate__animated animate__fadeInUp">${text}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        // 6. EVENT LISTENERS
+        document.getElementById('admin-lock-btn').onclick = () => {
+            if (prompt("Contraseña:") === "cnci2026") document.getElementById('admin-modal').classList.remove('hidden');
+        };
+        document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
+        document.getElementById('add-faq-btn').onclick = addFAQ;
+        document.getElementById('toggle-chat-btn').onclick = () => {
+            const win = document.getElementById('chat-window');
+            win.classList.toggle('hidden');
+            if (!win.classList.contains('hidden')) appendChatMessage('bot', '¡Hola! Soy tu asistente CNCI. ¿En qué te ayudo?');
+        };
+        document.getElementById('close-chat-btn').onclick = () => document.getElementById('chat-window').classList.add('hidden');
+        document.getElementById('send-btn').onclick = sendChatMessage;
+        document.getElementById('user-input').onkeypress = (e) => { if(e.key === 'Enter') sendChatMessage(); };
+
+        // Filtros UI
+        const filterFn = (cat) => {
+            const filtered = faqData.filter(f => f.category === cat);
+            document.getElementById('section-title').innerText = `Categoría: ${cat}`;
+            renderFAQs(filtered);
+        };
+        document.getElementById('cat-ingreso').onclick = () => filterFn('ingreso');
+        document.getElementById('cat-academia').onclick = () => filterFn('academia');
+        document.getElementById('cat-digital').onclick = () => filterFn('digital');
+        document.getElementById('cat-tramites').onclick = () => filterFn('tramites');
+        document.getElementById('reset-btn').onclick = () => {
+            document.getElementById('section-title').innerText = "Preguntas Frecuentes ✨";
+            renderFAQs(faqData);
+        };
+        document.getElementById('search-input').onkeyup = (e) => {
+            const term = e.target.value.toLowerCase();
+            renderFAQs(faqData.filter(f => f.question.toLowerCase().includes(term) || f.answer.toLowerCase().includes(term)));
+        };
+
+        // CSV Export/Import
+        document.getElementById('export-csv-btn').onclick = () => {
+            let csv = "Category,Question,Answer\n";
+            faqData.forEach(f => csv += `"${f.category}","${f.question}","${f.answer}"\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'CNCI_FAQs.csv'; a.click();
+        };
+
+        document.getElementById('csv-import').onchange = async (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const rows = event.target.result.split('\n').slice(1);
+                const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
+                for (const row of rows) {
+                    const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (cols && cols.length >= 3) {
+                        await addDoc(faqsRef, {
+                            category: cols[0].replace(/"/g, ''),
+                            question: cols[1].replace(/"/g, ''),
+                            answer: cols[2].replace(/"/g, ''),
+                            emoji: '📥',
+                            createdAt: Date.now()
+                        });
+                    }
+                }
+                alert("Importados a Firebase correctamente");
+            };
+            reader.readAsText(file);
+        };
+    </script>
+</body>
+</html>
