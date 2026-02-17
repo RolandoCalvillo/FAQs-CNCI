@@ -27,236 +27,302 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f4f7fe;
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #2a6aff 0%, #1a49b8 100%);
-        }
-
-        .category-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .category-card:hover {
-            transform: translateY(-8px);
-            border-color: #ff8500;
-        }
-
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .accordion-item.active .accordion-content {
-            max-height: 800px;
-        }
-
-        .accordion-item.active .chevron {
-            transform: rotate(180deg);
-            color: #ff8500;
-        }
-
-        .btn-naranja {
-            background-color: #ff8500;
-            transition: all 0.3s;
-        }
-        .btn-naranja:hover {
-            background-color: #e67700;
-            transform: scale(1.05);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #2a6aff; border-radius: 10px; }
-
-        /* Chat Styles */
-        #chat-window {
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .message-bubble {
-            max-width: 85%;
-            border-radius: 1.25rem;
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7fe; overflow-x: hidden; }
+        .gradient-bg { background: linear-gradient(135deg, #2a6aff 0%, #1a49b8 100%); }
+        .category-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .category-card:hover { transform: translateY(-8px); border-color: #ff8500; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        .accordion-item.active .accordion-content { max-height: 1500px; }
+        .accordion-item.active .chevron { transform: rotate(180deg); color: #ff8500; }
+        .btn-naranja { background-color: #ff8500; transition: all 0.3s; color: white; font-weight: 600; }
+        .btn-naranja:hover { background-color: #e67700; transform: scale(1.02); }
+        #chat-window { display: none; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .message-bubble { max-width: 85%; border-radius: 1.25rem; }
         .bot-msg { background-color: #f1f5f9; border-bottom-left-radius: 0.25rem; }
         .user-msg { background-color: #2a6aff; color: white; border-bottom-right-radius: 0.25rem; }
+        
+        /* Media Container */
+        .media-container img { border-radius: 1rem; margin-top: 1rem; max-height: 350px; object-fit: cover; width: 100%; border: 1px solid #e2e8f0; }
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1rem; margin-top: 1rem; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        
+        .admin-tab.active { background-color: #2a6aff; color: white; box-shadow: 0 4px 12px rgba(42, 106, 255, 0.3); }
+        .like-btn.liked { color: #ff8500; background-color: #fff7ed; border-color: #ffedd5; }
     </style>
 </head>
 <body class="text-slate-800">
 
+    <!-- Status Toast -->
+    <div id="status-toast" class="fixed top-4 right-4 z-[100] hidden animate__animated animate__fadeInRight">
+        <div class="px-6 py-3 rounded-xl shadow-lg flex items-center">
+            <i class="fas fa-info-circle mr-3"></i>
+            <span id="status-msg"></span>
+        </div>
+    </div>
+
     <!-- Navbar -->
     <nav class="bg-white py-4 px-6 shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-12 md:h-14">
-            <div class="hidden md:flex space-x-6 text-sm font-medium text-slate-600">
-                <a href="#" class="hover:text-cnciAzul">Portal Alumnos</a>
-                <a href="#" class="hover:text-cnciAzul">Biblioteca</a>
-                <a href="#" class="hover:text-cnciAzul">Blackboard</a>
+            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-10 md:h-12">
+            <div class="hidden md:flex space-x-6 text-sm font-semibold text-slate-600">
+                <a href="#" class="hover:text-cnciAzul transition-colors">Portal Alumnos</a>
+                <a href="#" class="hover:text-cnciAzul transition-colors">Biblioteca</a>
+                <a href="#" class="hover:text-cnciAzul transition-colors">Blackboard</a>
             </div>
         </div>
     </nav>
 
     <!-- Header -->
-    <header class="gradient-bg text-white pb-32 pt-16 px-4 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-            <div class="absolute top-10 left-10 text-6xl rotate-12">🎓</div>
-            <div class="absolute bottom-10 right-10 text-6xl -rotate-12">💻</div>
-            <div class="absolute top-1/2 left-1/4 text-4xl">📚</div>
-        </div>
-        
+    <header class="gradient-bg text-white pb-32 pt-20 px-4 relative overflow-hidden">
         <div class="max-w-4xl mx-auto text-center animate__animated animate__fadeInDown">
-            <h1 class="text-4xl md:text-5xl font-bold mb-6">¿Qué duda resolvemos hoy? 🚀</h1>
-            <p class="text-blue-100 mb-10 text-lg opacity-90">Tu guía inteligente de la Universidad CNCI Virtual</p>
-            
-            <div class="relative max-w-2xl mx-auto">
-                <input type="text" id="search-input" placeholder="Escribe tu duda (ej: Blackboard, Extraordinario...)" 
-                       class="w-full py-5 px-8 rounded-2xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg">
-                <i class="fas fa-search absolute right-6 top-1/2 -translate-y-1/2 text-cnciAzul text-xl"></i>
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Centro de Ayuda CNCI 🎓</h1>
+            <p class="text-blue-100 mb-10 text-lg md:text-xl opacity-90 max-w-2xl mx-auto">Encuentra respuestas inmediatas sobre tu proceso académico y plataformas digitales.</p>
+            <div class="relative max-w-2xl mx-auto group">
+                <input type="text" id="search-input" placeholder="¿Cómo ingreso a Blackboard? ¿Costo de extraordinarios?..." 
+                       class="w-full py-6 px-8 rounded-3xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg pr-16">
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <i class="fas fa-search text-white"></i>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 -mt-20 mb-24 relative z-10">
-        
-        <!-- Categories -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 animate__animated animate__fadeInUp">
-            <button id="cat-ingreso" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-cnciAzul">
-                <div class="w-16 h-16 bg-blue-50 text-cnciAzul rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-paper-plane text-2xl"></i>
-                </div>
-                <span class="font-bold text-slate-700">Primeros Pasos</span>
-            </button>
-            <button id="cat-academia" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-cnciNaranja">
-                <div class="w-16 h-16 bg-orange-50 text-cnciNaranja rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-user-graduate text-2xl"></i>
-                </div>
-                <span class="font-bold text-slate-700">Academia</span>
-            </button>
-            <button id="cat-digital" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-indigo-500">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-wifi text-2xl"></i>
-                </div>
-                <span class="font-bold text-slate-700">Campus Digital</span>
-            </button>
-            <button id="cat-tramites" class="category-card bg-white p-8 rounded-3xl shadow-lg text-center border-b-8 border-slate-400">
-                <div class="w-16 h-16 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-file-signature text-2xl"></i>
-                </div>
-                <span class="font-bold text-slate-700">Trámites</span>
-            </button>
+        <!-- Dashboard Categories (Dynamic) -->
+        <div id="category-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16 animate__animated animate__fadeInUp">
+            <!-- Filled by JS -->
         </div>
 
         <!-- FAQ Container -->
-        <div class="bg-white rounded-[2rem] shadow-xl border border-white p-6 md:p-12 animate__animated animate__fadeIn">
-            <div class="flex items-center justify-between mb-10 border-b border-slate-100 pb-6">
+        <div class="bg-white rounded-[3rem] shadow-2xl border border-white p-8 md:p-14 animate__animated animate__fadeIn">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4 border-b border-slate-50 pb-8">
                 <div>
-                    <h2 id="section-title" class="text-3xl font-extrabold text-slate-800">Preguntas Frecuentes ✨</h2>
-                    <p class="text-slate-500 mt-1">Sincronizado en tiempo real</p>
+                    <h2 id="section-title" class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">Preguntas Frecuentes</h2>
+                    <p class="text-slate-400 mt-2 font-medium flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span> Sincronizado en tiempo real</p>
                 </div>
-                <span class="hidden md:inline-block bg-orange-100 text-cnciNaranja px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
-                    Soporte 24/7
-                </span>
+                <button onclick="renderFAQs(faqData)" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo el catálogo</button>
             </div>
 
-            <div id="faq-list" class="space-y-4">
-                <!-- Se llena dinámicamente -->
-                <div class="py-10 text-center text-slate-400 italic">Cargando base de datos...</div>
+            <div id="faq-list" class="space-y-6">
+                <div class="flex flex-col items-center py-20 text-slate-300">
+                    <i class="fas fa-circle-notch fa-spin text-4xl mb-4"></i>
+                    <p class="font-medium">Conectando con la base de datos...</p>
+                </div>
             </div>
 
-            <!-- Empty state -->
-            <div id="empty-search" class="hidden py-20 text-center">
-                <div class="text-6xl mb-4">🔍</div>
-                <p class="text-xl font-bold text-slate-400">No encontramos resultados</p>
-                <button id="reset-btn" class="mt-4 text-cnciAzul font-bold hover:underline">Ver todas</button>
+            <div id="empty-search" class="hidden py-24 text-center">
+                <div class="text-8xl mb-6 grayscale">🕵️‍♂️</div>
+                <p class="text-2xl font-bold text-slate-800 mb-2">No encontramos coincidencias</p>
+                <p class="text-slate-400 mb-8">Prueba con palabras clave como "pago", "clases" o "contraseña"</p>
+                <button onclick="location.reload()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg">Reiniciar búsqueda</button>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 py-12 px-6">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo White" class="h-10 grayscale brightness-200">
-            <p class="text-sm">© 2026 Universidad CNCI Virtual. Todos los derechos reservados.</p>
-            <button id="admin-lock-btn" class="opacity-20 hover:opacity-100 transition-opacity text-slate-500">
-                <i class="fas fa-lock text-xs"></i>
-            </button>
+    <footer class="bg-slate-900 text-slate-500 py-16 px-6">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+            <div>
+                <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo" class="h-10 grayscale brightness-200 mb-6">
+                <p class="text-sm leading-relaxed">Plataforma de autoservicio para la comunidad estudiantil de la Universidad CNCI Virtual.</p>
+            </div>
+            <div class="flex justify-center space-x-6 text-2xl">
+                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-youtube"></i></a>
+            </div>
+            <div class="text-right">
+                <button id="admin-lock-btn" class="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all group">
+                    <i class="fas fa-user-shield text-slate-600 group-hover:text-cnciNaranja"></i>
+                </button>
+            </div>
         </div>
     </footer>
 
-    <!-- Admin Modal -->
-    <div id="admin-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white w-full max-w-5xl rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate__animated animate__zoomIn">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="text-xl font-bold flex items-center"><i class="fas fa-tools mr-3 text-cnciAzul"></i> Panel Admin (Firebase)</h3>
-                <button id="close-admin-btn" class="text-slate-400 hover:text-red-500"><i class="fas fa-times text-2xl"></i></button>
-            </div>
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white w-full max-w-7xl rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate__animated animate__zoomIn">
             
-            <div class="p-6 overflow-y-auto flex-grow">
-                <div class="flex flex-wrap gap-4 mb-8">
-                    <button id="add-faq-btn" class="btn-naranja text-white px-6 py-2 rounded-xl font-bold text-sm">
-                        <i class="fas fa-plus mr-2"></i> Nueva FAQ
-                    </button>
-                    <button id="export-csv-btn" class="bg-cnciAzul text-white px-6 py-2 rounded-xl font-bold text-sm">
-                        <i class="fas fa-file-export mr-2"></i> Exportar CSV
-                    </button>
-                    <label class="bg-emerald-500 text-white px-6 py-2 rounded-xl font-bold text-sm cursor-pointer">
-                        <i class="fas fa-file-import mr-2"></i> Importar CSV
-                        <input type="file" id="csv-import" class="hidden" accept=".csv">
-                    </label>
+            <div class="p-8 border-b bg-slate-50 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center text-white mr-4 shadow-lg shadow-blue-200">
+                        <i class="fas fa-tools text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800">Consola Maestra</h3>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Control Total de la Plataforma</p>
+                    </div>
+                </div>
+                <button id="close-admin-btn" class="w-12 h-12 rounded-2xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all flex items-center justify-center">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+                <!-- Sidebar -->
+                <div class="w-full md:w-72 bg-slate-50 border-r p-6 space-y-2 overflow-y-auto">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 px-4 tracking-widest">Gestión Principal</p>
+                    <button onclick="switchAdminMainTab('faqs')" id="tab-faqs" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center active"><i class="fas fa-question-circle mr-3 w-5"></i> Preguntas (FAQs)</button>
+                    <button onclick="switchAdminMainTab('categories')" id="tab-categories" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center"><i class="fas fa-th-large mr-3 w-5"></i> Secciones</button>
+                    <button onclick="switchAdminMainTab('data')" id="tab-data" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center"><i class="fas fa-file-import mr-3 w-5"></i> Importar / Exportar</button>
+                    
+                    <div class="pt-8 px-4" id="admin-create-btn-container">
+                        <button onclick="openCreateForm()" class="w-full btn-naranja py-4 rounded-2xl shadow-xl shadow-orange-100 flex items-center justify-center">
+                            <i class="fas fa-plus mr-2"></i> Nuevo Registro
+                        </button>
+                    </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl border">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-100 text-slate-600 font-bold">
-                            <tr>
-                                <th class="p-4">Categoría</th>
-                                <th class="p-4">Pregunta</th>
-                                <th class="p-4">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-table-body"></tbody>
-                    </table>
+                <!-- Admin Content Area -->
+                <div class="flex-grow p-8 overflow-y-auto bg-white">
+                    <!-- FAQs VIEW -->
+                    <div id="view-faqs" class="admin-view space-y-6">
+                        <div class="flex flex-wrap gap-2 mb-6" id="faq-category-filters">
+                            <!-- Category filters will be injected here -->
+                        </div>
+                        <div class="border rounded-3xl overflow-hidden shadow-sm">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                                    <tr>
+                                        <th class="p-5">Pregunta</th>
+                                        <th class="p-5">Sección</th>
+                                        <th class="p-5 text-center">Likes</th>
+                                        <th class="p-5 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-faqs-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORIES VIEW -->
+                    <div id="view-categories" class="admin-view hidden space-y-6">
+                        <h4 class="text-xl font-bold text-slate-800">Gestión de Secciones</h4>
+                        <div class="border rounded-3xl overflow-hidden shadow-sm">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                                    <tr>
+                                        <th class="p-5">Icono</th>
+                                        <th class="p-5">Nombre Sección</th>
+                                        <th class="p-5">Color ID</th>
+                                        <th class="p-5 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-cats-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DATA VIEW -->
+                    <div id="view-data" class="admin-view hidden space-y-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
+                                <div class="w-12 h-12 bg-cnciAzul text-white rounded-xl flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-download"></i></div>
+                                <h5 class="text-xl font-bold mb-2">Exportar Base de Datos</h5>
+                                <p class="text-sm text-slate-500 mb-6">Descarga todas las preguntas, respuestas y multimedia en formato CSV compatible con Excel.</p>
+                                <button onclick="exportDataToCSV()" class="bg-white text-cnciAzul border border-cnciAzul px-6 py-3 rounded-xl font-bold hover:bg-cnciAzul hover:text-white transition-all">Generar .CSV</button>
+                            </div>
+
+                            <div class="bg-orange-50 p-8 rounded-[2rem] border border-orange-100">
+                                <div class="w-12 h-12 bg-cnciNaranja text-white rounded-xl flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-upload"></i></div>
+                                <h5 class="text-xl font-bold mb-2">Importar desde CSV</h5>
+                                <p class="text-sm text-slate-500 mb-6">Sube un archivo .csv con las columnas: question, answer, category, imageUrl, videoUrl.</p>
+                                <input type="file" id="csv-upload" class="hidden" accept=".csv" onchange="importDataFromCSV(event)">
+                                <button onclick="document.getElementById('csv-upload').click()" class="btn-naranja px-6 py-3 rounded-xl">Seleccionar Archivo</button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-2xl">
+                            <h6 class="text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">Estructura Sugerida</h6>
+                            <code class="text-[10px] text-slate-600">question,answer,category,imageUrl,videoUrl</code>
+                        </div>
+                    </div>
+
+                    <!-- FORMS (SHARED) -->
+                    <div id="admin-form-container" class="hidden animate__animated animate__fadeIn">
+                        <button onclick="closeForm()" class="mb-6 text-cnciAzul font-bold flex items-center hover:underline">
+                            <i class="fas fa-arrow-left mr-2"></i> Cancelar y Volver
+                        </button>
+                        <div id="faq-form-block" class="form-block hidden">
+                            <h4 id="faq-form-title" class="text-2xl font-black mb-8">Gestión de FAQ</h4>
+                            <form id="faq-form" class="space-y-6 max-w-2xl">
+                                <input type="hidden" id="form-faq-id">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Sección Relacionada</label>
+                                        <select id="form-faq-category" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul"></select>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Pregunta</label>
+                                        <input type="text" id="form-faq-question" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Respuesta (HTML Permitido)</label>
+                                        <textarea id="form-faq-answer" required rows="4" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Imagen URL</label>
+                                        <input type="url" id="form-faq-image" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">YouTube URL</label>
+                                        <input type="url" id="form-faq-video" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full btn-naranja py-5 rounded-2xl shadow-xl shadow-orange-100 text-lg">Guardar FAQ</button>
+                            </form>
+                        </div>
+
+                        <div id="cat-form-block" class="form-block hidden">
+                            <h4 id="cat-form-title" class="text-2xl font-black mb-8">Gestión de Sección</h4>
+                            <form id="cat-form" class="space-y-6 max-w-md">
+                                <input type="hidden" id="form-cat-id">
+                                <div>
+                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Nombre de la Sección</label>
+                                    <input type="text" id="form-cat-name" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: Inscripciones">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Icono (FontAwesome Class)</label>
+                                    <input type="text" id="form-cat-icon" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: fas fa-star">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Color Borde (Tailwind Class)</label>
+                                    <input type="text" id="form-cat-color" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: border-cnciAzul">
+                                </div>
+                                <button type="submit" class="w-full btn-naranja py-5 rounded-2xl shadow-xl shadow-orange-100 text-lg">Guardar Sección</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chat Window -->
-    <div id="chat-window" class="fixed bottom-28 right-8 w-[90vw] md:w-96 h-[70vh] max-h-[600px] bg-white rounded-[2rem] shadow-2xl z-50 overflow-hidden hidden animate__animated animate__fadeInUp">
-        <div class="gradient-bg p-6 text-white flex items-center justify-between">
+    <!-- Floating Chat -->
+    <div id="chat-window" class="fixed bottom-28 right-8 w-[92vw] md:w-[400px] h-[75vh] max-h-[650px] bg-white rounded-[2.5rem] shadow-2xl z-50 overflow-hidden hidden animate__animated animate__fadeInUp border border-slate-100">
+        <div class="gradient-bg p-8 text-white flex items-center justify-between">
             <div class="flex items-center">
-                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div><h4 class="font-bold">Asistente CNCI</h4><span class="text-xs opacity-75">IA Generativa</span></div>
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mr-4 backdrop-blur-sm"><i class="fas fa-robot"></i></div>
+                <div><h4 class="font-bold text-lg">Asistente Virtual</h4><span class="text-xs font-bold text-blue-200">Soporte 24/7</span></div>
             </div>
-            <button id="close-chat-btn" class="text-white/60 hover:text-white"><i class="fas fa-times"></i></button>
+            <button id="close-chat-btn"><i class="fas fa-times"></i></button>
         </div>
-        <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50/50"></div>
-        <div class="p-4 bg-white border-t flex gap-2">
-            <input type="text" id="user-input" placeholder="Pregunta algo..." class="bg-slate-100 w-full rounded-2xl px-4 py-2 outline-none text-sm">
-            <button id="send-btn" class="text-cnciAzul p-2"><i class="fas fa-paper-plane"></i></button>
+        <div id="chat-messages" class="flex-grow overflow-y-auto p-6 space-y-6 bg-slate-50/50"></div>
+        <div class="p-6 bg-white border-t flex gap-3">
+            <input type="text" id="user-input" placeholder="Escribe tu duda..." class="bg-slate-100 w-full rounded-2xl px-6 py-4 outline-none">
+            <button id="send-btn" class="w-14 h-14 bg-cnciAzul text-white rounded-2xl"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <button id="toggle-chat-btn" class="fixed bottom-8 right-8 w-16 h-16 gradient-bg text-white rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-110 transition-all">
-        <i class="fas fa-comment-dots text-2xl"></i>
+    <button id="toggle-chat-btn" class="fixed bottom-8 right-8 w-20 h-20 gradient-bg text-white rounded-[2rem] shadow-2xl flex items-center justify-center z-40">
+        <i class="fas fa-comment-dots text-3xl"></i>
     </button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyC8jIUPHKmcKy7eO1aq6eS4ZJ6kfq4zrBo",
             authDomain: "apppaneldesupcallcenter.firebaseapp.com",
@@ -271,47 +337,62 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const apiKey = ""; // Gemini API
+        const apiKey = ""; // Gemini AI
 
         let user = null;
         let faqData = [];
+        let catData = [];
+        let currentAdminFilter = 'all';
+        let currentAdminMainTab = 'faqs';
 
-        // 1. AUTENTICACIÓN (Regla 3)
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) { console.error("Auth error", err); }
-        };
-
-        // 2. ESCUCHA DE DATOS EN TIEMPO REAL (Regla 1 y 2)
-        const setupDatabaseListener = (currentUser) => {
-            if (!currentUser) return;
-            
-            // Ruta obligatoria: artifacts/{appId}/public/data/{collection}
-            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
-            
-            onSnapshot(faqsRef, (snapshot) => {
-                faqData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderFAQs();
-                renderAdminTable();
-            }, (error) => {
-                console.error("Firestore error:", error);
-            });
+        // 1. AUTH & INIT
+        const init = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
         };
 
         onAuthStateChanged(auth, (u) => {
             user = u;
-            if (u) setupDatabaseListener(u);
+            if (u) {
+                setupListeners();
+            }
         });
 
-        initAuth();
+        // 2. FIRESTORE LISTENERS
+        const setupListeners = () => {
+            // Secciones
+            const catsRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+            onSnapshot(catsRef, (snap) => {
+                catData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderCategoriesUI();
+                renderAdminCats();
+                updateFormSelectors();
+            }, (err) => console.error(err));
 
-        // 3. UI RENDER FUNCTIONS
-        function renderFAQs(data = faqData) {
+            // FAQs
+            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
+            onSnapshot(faqsRef, (snap) => {
+                faqData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderFAQs(faqData);
+                renderAdminFaqs();
+            }, (err) => console.error(err));
+        };
+
+        // 3. UI RENDERING (PUBLIC)
+        const renderCategoriesUI = () => {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = catData.map(cat => `
+                <button onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl text-center border-b-8 ${cat.colorClass || 'border-cnciAzul'} animate__animated animate__fadeIn">
+                    <div class="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="${cat.iconClass} text-xl"></i></div>
+                    <span class="font-bold text-slate-700 block">${cat.name}</span>
+                </button>
+            `).join('');
+        };
+
+        window.renderFAQs = (data) => {
             const list = document.getElementById('faq-list');
             const empty = document.getElementById('empty-search');
             list.innerHTML = '';
@@ -322,174 +403,319 @@
             }
             empty.classList.add('hidden');
 
-            data.forEach(faq => {
+            data.forEach((faq, idx) => {
+                const videoId = getYoutubeId(faq.videoUrl);
                 const item = document.createElement('div');
-                item.className = 'accordion-item border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md animate__animated animate__fadeIn';
+                item.className = `accordion-item border border-slate-100 rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all animate__animated animate__fadeInUp`;
+                item.style.animationDelay = `${idx * 0.05}s`;
+                
                 item.innerHTML = `
-                    <button class="w-full flex items-center justify-between p-5 text-left bg-white" onclick="this.parentElement.classList.toggle('active')">
-                        <span class="font-bold pr-4 flex items-center text-slate-700">
-                            <span class="mr-3 text-xl">${faq.emoji || '🔹'}</span> ${faq.question}
+                    <button class="w-full flex items-center justify-between p-7 text-left group" onclick="this.parentElement.classList.toggle('active')">
+                        <span class="font-bold pr-6 flex items-center text-slate-800 text-lg">
+                            <span class="w-10 h-10 bg-slate-50 text-cnciAzul rounded-xl flex items-center justify-center mr-4 group-hover:bg-cnciAzul group-hover:text-white transition-colors">
+                                <i class="fas fa-question text-xs"></i>
+                            </span>
+                            ${faq.question}
                         </span>
-                        <i class="fas fa-chevron-down text-slate-300 chevron transition-transform"></i>
+                        <i class="fas fa-chevron-down text-slate-300 chevron transition-all"></i>
                     </button>
-                    <div class="accordion-content bg-slate-50/50">
-                        <div class="p-6 border-t border-slate-100 text-slate-600 leading-relaxed">${faq.answer}</div>
+                    <div class="accordion-content">
+                        <div class="p-8 border-t border-slate-50 text-slate-600 leading-relaxed">
+                            <div class="prose prose-slate max-w-none">${faq.answer}</div>
+                            ${faq.imageUrl ? `<div class="media-container"><img src="${faq.imageUrl}" onerror="this.parentElement.style.display='none'"></div>` : ''}
+                            ${videoId ? `<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>` : ''}
+                            
+                            <div class="mt-10 pt-6 border-t border-slate-50 flex items-center justify-between">
+                                <span class="text-[10px] font-black uppercase text-slate-300 tracking-widest">${faq.category}</span>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="handleLike('${faq.id}', event)" class="like-btn px-4 py-2 rounded-full border border-slate-100 flex items-center gap-2 hover:bg-orange-50 hover:text-cnciNaranja transition-all text-slate-400">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="font-bold text-xs">${faq.likes || 0}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 list.appendChild(item);
             });
-        }
+        };
 
-        function renderAdminTable() {
-            const body = document.getElementById('admin-table-body');
-            if (!body) return;
-            body.innerHTML = '';
-            faqData.forEach(faq => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-slate-50 text-xs md:text-sm";
-                tr.innerHTML = `
-                    <td class="p-4 uppercase font-bold text-cnciAzul">${faq.category}</td>
-                    <td class="p-4 font-medium">${faq.question}</td>
-                    <td class="p-4">
-                        <button class="text-red-500 hover:bg-red-50 p-2 rounded-lg delete-btn" data-id="${faq.id}"><i class="fas fa-trash"></i></button>
+        // 4. ADMIN RENDERING
+        const renderAdminFaqs = () => {
+            const body = document.getElementById('admin-faqs-body');
+            const filters = document.getElementById('faq-category-filters');
+            
+            // Render Filters
+            filters.innerHTML = `<button onclick="setFaqFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold border ${currentAdminFilter === 'all' ? 'bg-cnciAzul text-white' : 'bg-white text-slate-400'}">Todas</button>`;
+            catData.forEach(c => {
+                filters.innerHTML += `<button onclick="setFaqFilter('${c.id}')" class="px-4 py-1.5 rounded-full text-xs font-bold border ${currentAdminFilter === c.id ? 'bg-cnciAzul text-white' : 'bg-white text-slate-400'}">${c.name}</button>`;
+            });
+
+            // Filter Data
+            const filtered = currentAdminFilter === 'all' ? faqData : faqData.filter(f => f.category === currentAdminFilter);
+            
+            body.innerHTML = filtered.map(faq => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-5 font-bold text-slate-800">${faq.question}</td>
+                    <td class="p-5 uppercase text-[10px] font-black text-slate-400">${faq.category}</td>
+                    <td class="p-5 text-center font-bold text-cnciNaranja">${faq.likes || 0}</td>
+                    <td class="p-5 text-right whitespace-nowrap">
+                        <button onclick="editFaq('${faq.id}')" class="p-2 text-cnciAzul hover:bg-blue-50 rounded-lg"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteFaq('${faq.id}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
                     </td>
-                `;
-                body.appendChild(tr);
-            });
+                </tr>
+            `).join('');
+        };
 
-            // Listeners para borrar
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    if (confirm("¿Eliminar de Firebase?")) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', btn.dataset.id));
-                    }
-                }
-            });
-        }
+        const renderAdminCats = () => {
+            const body = document.getElementById('admin-cats-body');
+            body.innerHTML = catData.map(cat => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-5 text-slate-400"><i class="${cat.iconClass} text-xl"></i></td>
+                    <td class="p-5 font-bold text-slate-800">${cat.name}</td>
+                    <td class="p-5 font-mono text-xs text-slate-400">${cat.colorClass}</td>
+                    <td class="p-5 text-right">
+                        <button onclick="editCat('${cat.id}')" class="p-2 text-cnciAzul hover:bg-blue-50 rounded-lg"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCat('${cat.id}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        };
 
-        // 4. OPERACIONES FIREBASE
-        async function addFAQ() {
-            const q = prompt("Pregunta:");
-            const a = prompt("Respuesta:");
-            const c = prompt("Categoría (ingreso, academia, digital, tramites):", "academia");
-            if (!q || !a) return;
+        // 5. ACTIONS & HELPERS
+        window.handleLike = async (id, e) => {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            if (btn.classList.contains('liked')) return;
+            
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), {
+                    likes: increment(1)
+                });
+                btn.classList.add('liked');
+            } catch (err) { console.error(err); }
+        };
 
-            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
-            await addDoc(faqsRef, {
-                question: q,
-                answer: a,
-                category: c || 'academia',
-                emoji: '✨',
-                createdAt: Date.now()
-            });
-        }
+        window.setFaqFilter = (catId) => {
+            currentAdminFilter = catId;
+            renderAdminFaqs();
+        };
 
-        // 5. CHATBOT GEMINI
-        async function sendChatMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if (!text) return;
+        window.switchAdminMainTab = (tab) => {
+            currentAdminMainTab = tab;
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            
+            document.getElementById('admin-create-btn-container').style.display = (tab === 'data') ? 'none' : 'block';
+            closeForm();
+        };
 
-            appendChatMessage('user', text);
-            input.value = '';
-            const typingId = appendChatMessage('bot', 'Consultando base de datos...');
+        const updateFormSelectors = () => {
+            const select = document.getElementById('form-faq-category');
+            select.innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        };
+
+        window.openCreateForm = () => {
+            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('admin-form-container').classList.remove('hidden');
+            document.querySelectorAll('.form-block').forEach(b => b.classList.add('hidden'));
+            
+            if (currentAdminMainTab === 'faqs') {
+                document.getElementById('faq-form-block').classList.remove('hidden');
+                document.getElementById('faq-form').reset();
+                document.getElementById('form-faq-id').value = '';
+                document.getElementById('faq-form-title').innerText = "Nueva FAQ";
+            } else {
+                document.getElementById('cat-form-block').classList.remove('hidden');
+                document.getElementById('cat-form').reset();
+                document.getElementById('form-cat-id').value = '';
+                document.getElementById('cat-form-title').innerText = "Nueva Sección";
+            }
+        };
+
+        window.closeForm = () => {
+            document.getElementById('admin-form-container').classList.add('hidden');
+            document.getElementById(`view-${currentAdminMainTab}`).classList.remove('hidden');
+        };
+
+        // 6. DB OPERATIONS (FAQS)
+        document.getElementById('faq-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('form-faq-id').value;
+            const payload = {
+                question: document.getElementById('form-faq-question').value,
+                answer: document.getElementById('form-faq-answer').value,
+                category: document.getElementById('form-faq-category').value,
+                imageUrl: document.getElementById('form-faq-image').value,
+                videoUrl: document.getElementById('form-faq-video').value,
+                updatedAt: Date.now()
+            };
 
             try {
-                const context = faqData.map(f => `Q: ${f.question} A: ${f.answer}`).join('\n');
-                const systemPrompt = `Eres un asistente de la Universidad CNCI Virtual. Responde basándote en esta base de datos:\n${context}`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: text }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-
-                const result = await response.json();
-                const botText = result.candidates?.[0]?.content?.parts?.[0]?.text || "No pude procesar eso.";
-                document.getElementById(typingId).innerText = botText;
-            } catch (e) { document.getElementById(typingId).innerText = "Error de conexión."; }
-        }
-
-        function appendChatMessage(role, text) {
-            const id = 'msg-' + Date.now();
-            const container = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            div.innerHTML = `<div id="${id}" class="message-bubble ${role === 'user' ? 'user-msg' : 'bot-msg'} p-4 text-xs animate__animated animate__fadeInUp">${text}</div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return id;
-        }
-
-        // 6. EVENT LISTENERS
-        document.getElementById('admin-lock-btn').onclick = () => {
-            if (prompt("Contraseña:") === "cnci2026") document.getElementById('admin-modal').classList.remove('hidden');
-        };
-        document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
-        document.getElementById('add-faq-btn').onclick = addFAQ;
-        document.getElementById('toggle-chat-btn').onclick = () => {
-            const win = document.getElementById('chat-window');
-            win.classList.toggle('hidden');
-            if (!win.classList.contains('hidden')) appendChatMessage('bot', '¡Hola! Soy tu asistente CNCI. ¿En qué te ayudo?');
-        };
-        document.getElementById('close-chat-btn').onclick = () => document.getElementById('chat-window').classList.add('hidden');
-        document.getElementById('send-btn').onclick = sendChatMessage;
-        document.getElementById('user-input').onkeypress = (e) => { if(e.key === 'Enter') sendChatMessage(); };
-
-        // Filtros UI
-        const filterFn = (cat) => {
-            const filtered = faqData.filter(f => f.category === cat);
-            document.getElementById('section-title').innerText = `Categoría: ${cat}`;
-            renderFAQs(filtered);
-        };
-        document.getElementById('cat-ingreso').onclick = () => filterFn('ingreso');
-        document.getElementById('cat-academia').onclick = () => filterFn('academia');
-        document.getElementById('cat-digital').onclick = () => filterFn('digital');
-        document.getElementById('cat-tramites').onclick = () => filterFn('tramites');
-        document.getElementById('reset-btn').onclick = () => {
-            document.getElementById('section-title').innerText = "Preguntas Frecuentes ✨";
-            renderFAQs(faqData);
-        };
-        document.getElementById('search-input').onkeyup = (e) => {
-            const term = e.target.value.toLowerCase();
-            renderFAQs(faqData.filter(f => f.question.toLowerCase().includes(term) || f.answer.toLowerCase().includes(term)));
+                if (id) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), payload);
+                } else {
+                    payload.createdAt = Date.now();
+                    payload.likes = 0;
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), payload);
+                }
+                closeForm();
+                showToast("FAQ guardada", "success");
+            } catch (err) { showToast("Error al guardar"); }
         };
 
-        // CSV Export/Import
-        document.getElementById('export-csv-btn').onclick = () => {
-            let csv = "Category,Question,Answer\n";
-            faqData.forEach(f => csv += `"${f.category}","${f.question}","${f.answer}"\n`);
+        window.editFaq = (id) => {
+            const faq = faqData.find(f => f.id === id);
+            openCreateForm();
+            document.getElementById('form-faq-id').value = faq.id;
+            document.getElementById('form-faq-question').value = faq.question;
+            document.getElementById('form-faq-answer').value = faq.answer;
+            document.getElementById('form-faq-category').value = faq.category;
+            document.getElementById('form-faq-image').value = faq.imageUrl || '';
+            document.getElementById('form-faq-video').value = faq.videoUrl || '';
+            document.getElementById('faq-form-title').innerText = "Editar FAQ";
+        };
+
+        window.deleteFaq = async (id) => {
+            if (confirm("¿Eliminar pregunta permanentemente?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id));
+                showToast("FAQ eliminada");
+            }
+        };
+
+        // 7. DB OPERATIONS (CATEGORIES)
+        document.getElementById('cat-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('form-cat-id').value;
+            const payload = {
+                name: document.getElementById('form-cat-name').value,
+                iconClass: document.getElementById('form-cat-icon').value,
+                colorClass: document.getElementById('form-cat-color').value,
+                id: document.getElementById('form-cat-name').value.toLowerCase().replace(/\s/g, '-')
+            };
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'categories', id || payload.id);
+                await setDoc(docRef, payload);
+                closeForm();
+                showToast("Sección actualizada", "success");
+            } catch (err) { showToast("Error al guardar sección"); }
+        };
+
+        window.editCat = (id) => {
+            const cat = catData.find(c => c.id === id);
+            openCreateForm();
+            document.getElementById('form-cat-id').value = cat.id;
+            document.getElementById('form-cat-name').value = cat.name;
+            document.getElementById('form-cat-icon').value = cat.iconClass;
+            document.getElementById('form-cat-color').value = cat.colorClass;
+            document.getElementById('cat-form-title').innerText = "Editar Sección";
+        };
+
+        window.deleteCat = async (id) => {
+            if (confirm("¿Eliminar sección? Esto podría desvincular preguntas asociadas.")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id));
+                showToast("Sección eliminada");
+            }
+        };
+
+        // 8. IMPORT / EXPORT CSV
+        window.exportDataToCSV = () => {
+            let csv = "question,answer,category,imageUrl,videoUrl,likes\n";
+            faqData.forEach(f => {
+                const cleanAnswer = f.answer.replace(/"/g, '""');
+                csv += `"${f.question}","${cleanAnswer}","${f.category}","${f.imageUrl || ''}","${f.videoUrl || ''}",${f.likes || 0}\n`;
+            });
             const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'CNCI_FAQs.csv'; a.click();
+            a.href = url;
+            a.download = `Ayuda_CNCI_${new Date().toLocaleDateString()}.csv`;
+            a.click();
         };
 
-        document.getElementById('csv-import').onchange = async (e) => {
-            const file = e.target.files[0];
+        window.importDataFromCSV = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = async (event) => {
-                const rows = event.target.result.split('\n').slice(1);
-                const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
-                for (const row of rows) {
-                    const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    if (cols && cols.length >= 3) {
-                        await addDoc(faqsRef, {
-                            category: cols[0].replace(/"/g, ''),
-                            question: cols[1].replace(/"/g, ''),
-                            answer: cols[2].replace(/"/g, ''),
-                            emoji: '📥',
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const rows = text.split('\n').slice(1);
+                let imported = 0;
+                
+                showToast("Importando datos...", "success");
+
+                for (let row of rows) {
+                    const columns = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (columns && columns.length >= 3) {
+                        const payload = {
+                            question: columns[0].replace(/"/g, ''),
+                            answer: columns[1].replace(/"/g, '').replace(/""/g, '"'),
+                            category: columns[2].replace(/"/g, ''),
+                            imageUrl: (columns[3] || '').replace(/"/g, ''),
+                            videoUrl: (columns[4] || '').replace(/"/g, ''),
+                            likes: parseInt(columns[5]) || 0,
                             createdAt: Date.now()
-                        });
+                        };
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), payload);
+                        imported++;
                     }
                 }
-                alert("Importados a Firebase correctamente");
+                showToast(`Se importaron ${imported} preguntas`, "success");
             };
             reader.readAsText(file);
         };
+
+        // UI HELPERS
+        const showToast = (msg, type = 'error') => {
+            const t = document.getElementById('status-toast');
+            const m = document.getElementById('status-msg');
+            t.className = `fixed top-4 right-4 z-[100] animate__animated animate__fadeInRight px-6 py-3 rounded-xl shadow-lg flex items-center ${type === 'error' ? 'bg-red-500' : 'bg-emerald-500'} text-white`;
+            m.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 4000);
+        };
+
+        const getYoutubeId = (url) => {
+            if (!url) return null;
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        };
+
+        window.filterByCat = (catId) => {
+            const data = faqData.filter(f => f.category === catId);
+            const cat = catData.find(c => c.id === catId);
+            document.getElementById('section-title').innerText = cat ? cat.name : "Preguntas Frecuentes";
+            renderFAQs(data);
+            window.scrollTo({ top: document.getElementById('faq-list').offsetTop - 200, behavior: 'smooth' });
+        };
+
+        document.getElementById('admin-lock-btn').onclick = () => {
+            const pass = prompt("🔐 Acceso Administrativo:");
+            if (pass === "cnci2026") {
+                document.getElementById('admin-modal').classList.remove('hidden');
+                switchAdminMainTab('faqs');
+            } else {
+                showToast("Clave inválida");
+            }
+        };
+
+        document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
+        document.getElementById('toggle-chat-btn').onclick = () => document.getElementById('chat-window').classList.toggle('hidden');
+        document.getElementById('close-chat-btn').onclick = () => document.getElementById('chat-window').classList.add('hidden');
+
+        document.getElementById('search-input').oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = faqData.filter(f => f.question.toLowerCase().includes(term) || f.answer.toLowerCase().includes(term));
+            renderFAQs(filtered);
+        };
+
+        init();
     </script>
 </body>
 </html>
