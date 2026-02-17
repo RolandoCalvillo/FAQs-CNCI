@@ -55,16 +55,43 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="bg-white py-4 px-6 shadow-sm sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-10 md:h-12">
-            <div class="hidden md:flex space-x-6 text-sm font-semibold text-slate-600">
-                <a href="#" class="hover:text-cnciAzul transition-colors">Portal Alumnos</a>
-                <a href="#" class="hover:text-cnciAzul transition-colors">Biblioteca</a>
-                <a href="#" class="hover:text-cnciAzul transition-colors">Blackboard</a>
-            </div>
+    <nav class="bg-white py-4 px-6 shadow-md sticky top-0 z-50 border-b border-slate-100" aria-label="Navegación principal">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="/" class="flex items-center">
+            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-10 md:h-12 hover:opacity-90 transition-opacity">
+        </a>
+
+        <div class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+            <a href="https://alumnos.cnci.mx/login" 
+               target="_blank" 
+               class="hover:text-blue-700 transition-colors duration-300">
+               Portal Alumnos
+            </a>
+            
+            <a href="https://cnci.unlimitedlearning.io/" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="hover:text-blue-700 transition-colors duration-300">
+               Biblioteca
+            </a>
+
+            <a href="https://cnci.blackboard.com/ultra/" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+               Blackboard
+            </a>
         </div>
-    </nav>
+
+        <div class="md:hidden">
+            <button class="text-slate-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</nav>
 
     <!-- Header -->
     <header class="gradient-bg text-white pb-32 pt-20 px-4 relative overflow-hidden">
