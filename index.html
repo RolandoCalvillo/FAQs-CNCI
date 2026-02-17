@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
@@ -36,18 +37,11 @@
         .accordion-item.active .chevron { transform: rotate(180deg); color: #ff8500; }
         .btn-naranja { background-color: #ff8500; transition: all 0.3s; color: white; font-weight: 600; }
         .btn-naranja:hover { background-color: #e67700; transform: scale(1.02); }
-        #chat-window { display: none; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .message-bubble { max-width: 85%; border-radius: 1.25rem; }
-        .bot-msg { background-color: #f1f5f9; border-bottom-left-radius: 0.25rem; }
-        .user-msg { background-color: #2a6aff; color: white; border-bottom-right-radius: 0.25rem; }
-        
-        /* Media Container */
-        .media-container img { border-radius: 1rem; margin-top: 1rem; max-height: 350px; object-fit: cover; width: 100%; border: 1px solid #e2e8f0; }
-        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1rem; margin-top: 1rem; }
-        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-        
         .admin-tab.active { background-color: #2a6aff; color: white; box-shadow: 0 4px 12px rgba(42, 106, 255, 0.3); }
-        .like-btn.liked { color: #ff8500; background-color: #fff7ed; border-color: #ffedd5; }
+        .sort-btn { cursor: pointer; transition: color 0.2s; }
+        .sort-btn:hover { color: #2a6aff; }
+        .filter-input { border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; font-size: 12px; width: 100%; outline: none; font-weight: normal; margin-top: 4px; }
+        .filter-input:focus { border-color: #2a6aff; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -76,11 +70,11 @@
     <header class="gradient-bg text-white pb-32 pt-20 px-4 relative overflow-hidden">
         <div class="max-w-4xl mx-auto text-center animate__animated animate__fadeInDown">
             <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Centro de Ayuda CNCI 🎓</h1>
-            <p class="text-blue-100 mb-10 text-lg md:text-xl opacity-90 max-w-2xl mx-auto">Encuentra respuestas inmediatas sobre tu proceso académico y plataformas digitales.</p>
+            <p class="text-blue-100 mb-10 text-lg md:text-xl opacity-90 max-w-2xl mx-auto">Encuentra respuestas inmediatas sobre tu proceso académico.</p>
             <div class="relative max-w-2xl mx-auto group">
-                <input type="text" id="search-input" placeholder="¿Cómo ingreso a Blackboard? ¿Costo de extraordinarios?..." 
+                <input type="text" id="search-input" placeholder="¿Cómo ingreso a Blackboard?..." 
                        class="w-full py-6 px-8 rounded-3xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg pr-16">
-                <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center">
                     <i class="fas fa-search text-white"></i>
                 </div>
             </div>
@@ -89,106 +83,104 @@
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 -mt-20 mb-24 relative z-10">
-        <!-- Dashboard Categories (Dynamic) -->
-        <div id="category-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16 animate__animated animate__fadeInUp">
-            <!-- Filled by JS -->
-        </div>
+        <div id="category-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16"></div>
 
-        <!-- FAQ Container -->
-        <div class="bg-white rounded-[3rem] shadow-2xl border border-white p-8 md:p-14 animate__animated animate__fadeIn">
-            <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4 border-b border-slate-50 pb-8">
+        <div class="bg-white rounded-[3rem] shadow-2xl border border-white p-8 md:p-14">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 border-b border-slate-50 pb-8">
                 <div>
-                    <h2 id="section-title" class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">Preguntas Frecuentes</h2>
-                    <p class="text-slate-400 mt-2 font-medium flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span> Sincronizado en tiempo real</p>
+                    <h2 id="section-title" class="text-3xl md:text-4xl font-black text-slate-800">Preguntas Frecuentes</h2>
+                    <p class="text-slate-400 mt-2 font-medium flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span> Sincronización en tiempo real</p>
                 </div>
-                <button onclick="renderFAQs(faqData)" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo el catálogo</button>
+                <button onclick="renderFAQs(faqData)" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo</button>
             </div>
 
-            <div id="faq-list" class="space-y-6">
-                <div class="flex flex-col items-center py-20 text-slate-300">
-                    <i class="fas fa-circle-notch fa-spin text-4xl mb-4"></i>
-                    <p class="font-medium">Conectando con la base de datos...</p>
-                </div>
-            </div>
-
+            <div id="faq-list" class="space-y-6"></div>
             <div id="empty-search" class="hidden py-24 text-center">
                 <div class="text-8xl mb-6 grayscale">🕵️‍♂️</div>
                 <p class="text-2xl font-bold text-slate-800 mb-2">No encontramos coincidencias</p>
-                <p class="text-slate-400 mb-8">Prueba con palabras clave como "pago", "clases" o "contraseña"</p>
-                <button onclick="location.reload()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg">Reiniciar búsqueda</button>
+                <button onclick="location.reload()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg mt-4">Reiniciar</button>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
+    <!-- Admin Button -->
     <footer class="bg-slate-900 text-slate-500 py-16 px-6">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-            <div>
-                <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo" class="h-10 grayscale brightness-200 mb-6">
-                <p class="text-sm leading-relaxed">Plataforma de autoservicio para la comunidad estudiantil de la Universidad CNCI Virtual.</p>
-            </div>
-            <div class="flex justify-center space-x-6 text-2xl">
-                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="hover:text-white transition-colors"><i class="fab fa-youtube"></i></a>
-            </div>
-            <div class="text-right">
-                <button id="admin-lock-btn" class="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all group">
-                    <i class="fas fa-user-shield text-slate-600 group-hover:text-cnciNaranja"></i>
-                </button>
-            </div>
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo" class="h-10 grayscale brightness-200">
+            <button id="admin-lock-btn" class="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all">
+                <i class="fas fa-user-shield text-slate-600 hover:text-cnciNaranja"></i>
+            </button>
         </div>
     </footer>
 
     <!-- ADMIN MODAL -->
     <div id="admin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white w-full max-w-7xl rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate__animated animate__zoomIn">
+        <div class="bg-white w-full max-w-7xl rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             
             <div class="p-8 border-b bg-slate-50 flex justify-between items-center">
                 <div class="flex items-center">
-                    <div class="w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center text-white mr-4 shadow-lg shadow-blue-200">
+                    <div class="w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center text-white mr-4 shadow-lg">
                         <i class="fas fa-tools text-xl"></i>
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800">Consola Maestra</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Control Total de la Plataforma</p>
-                    </div>
+                    <h3 class="text-2xl font-black text-slate-800">Panel Administrativo</h3>
                 </div>
-                <button id="close-admin-btn" class="w-12 h-12 rounded-2xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all flex items-center justify-center">
-                    <i class="fas fa-times text-2xl"></i>
+                <button id="close-admin-btn" class="text-slate-400 hover:text-red-500 transition-all text-2xl">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
                 <!-- Sidebar -->
                 <div class="w-full md:w-72 bg-slate-50 border-r p-6 space-y-2 overflow-y-auto">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 px-4 tracking-widest">Gestión Principal</p>
-                    <button onclick="switchAdminMainTab('faqs')" id="tab-faqs" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center active"><i class="fas fa-question-circle mr-3 w-5"></i> Preguntas (FAQs)</button>
-                    <button onclick="switchAdminMainTab('categories')" id="tab-categories" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center"><i class="fas fa-th-large mr-3 w-5"></i> Secciones</button>
-                    <button onclick="switchAdminMainTab('data')" id="tab-data" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold transition-all flex items-center"><i class="fas fa-file-import mr-3 w-5"></i> Importar / Exportar</button>
-                    
-                    <div class="pt-8 px-4" id="admin-create-btn-container">
-                        <button onclick="openCreateForm()" class="w-full btn-naranja py-4 rounded-2xl shadow-xl shadow-orange-100 flex items-center justify-center">
-                            <i class="fas fa-plus mr-2"></i> Nuevo Registro
-                        </button>
-                    </div>
+                    <button onclick="switchAdminMainTab('faqs')" id="tab-faqs" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center active"><i class="fas fa-question-circle mr-3"></i> Preguntas</button>
+                    <button onclick="switchAdminMainTab('categories')" id="tab-categories" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-th-large mr-3"></i> Secciones</button>
+                    <button onclick="switchAdminMainTab('stats')" id="tab-stats" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-chart-bar mr-3"></i> Estadísticas</button>
+                    <button onclick="switchAdminMainTab('data')" id="tab-data" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-file-import mr-3"></i> Datos (CSV)</button>
                 </div>
 
                 <!-- Admin Content Area -->
                 <div class="flex-grow p-8 overflow-y-auto bg-white">
-                    <!-- FAQs VIEW -->
+                    
+                    <!-- VIEW: FAQS -->
                     <div id="view-faqs" class="admin-view space-y-6">
-                        <div class="flex flex-wrap gap-2 mb-6" id="faq-category-filters">
-                            <!-- Category filters will be injected here -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-xl font-bold">Gestión de Preguntas</h4>
+                            <button onclick="openFaqForm()" class="bg-cnciAzul text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md hover:scale-105 transition-transform">
+                                <i class="fas fa-plus mr-2"></i> Añadir Pregunta Individual
+                            </button>
                         </div>
-                        <div class="border rounded-3xl overflow-hidden shadow-sm">
-                            <table class="w-full text-left text-sm">
+                        <div class="border rounded-3xl overflow-x-auto shadow-sm">
+                            <table class="w-full text-left text-sm min-w-[700px]">
                                 <thead class="bg-slate-50 text-slate-500 font-bold border-b">
                                     <tr>
-                                        <th class="p-5">Pregunta</th>
-                                        <th class="p-5">Sección</th>
-                                        <th class="p-5 text-center">Likes</th>
-                                        <th class="p-5 text-right">Acciones</th>
+                                        <th class="p-5">
+                                            <div class="flex flex-col">
+                                                <div class="flex items-center justify-between">
+                                                    <span>Pregunta</span>
+                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('question')"></i>
+                                                </div>
+                                                <input type="text" placeholder="Filtrar..." class="filter-input" oninput="applyFaqFilters('question', this.value)">
+                                            </div>
+                                        </th>
+                                        <th class="p-5 w-48">
+                                            <div class="flex flex-col">
+                                                <div class="flex items-center justify-between">
+                                                    <span>Sección</span>
+                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('category')"></i>
+                                                </div>
+                                                <input type="text" placeholder="Filtrar..." class="filter-input" oninput="applyFaqFilters('category', this.value)">
+                                            </div>
+                                        </th>
+                                        <th class="p-5 text-center w-24">
+                                            <div class="flex flex-col items-center">
+                                                <div class="flex items-center justify-between w-full">
+                                                    <span>Likes</span>
+                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('likes')"></i>
+                                                </div>
+                                                <input type="text" placeholder="0" class="filter-input text-center" oninput="applyFaqFilters('likes', this.value)">
+                                            </div>
+                                        </th>
+                                        <th class="p-5 text-right w-32">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-faqs-body" class="divide-y divide-slate-100"></tbody>
@@ -196,16 +188,20 @@
                         </div>
                     </div>
 
-                    <!-- CATEGORIES VIEW -->
+                    <!-- VIEW: CATEGORIES -->
                     <div id="view-categories" class="admin-view hidden space-y-6">
-                        <h4 class="text-xl font-bold text-slate-800">Gestión de Secciones</h4>
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xl font-bold">Gestión de Secciones</h4>
+                            <button onclick="openCatForm()" class="btn-naranja px-6 py-2.5 rounded-xl shadow-lg text-sm">
+                                <i class="fas fa-plus mr-2"></i> Nuevo Registro de Sección
+                            </button>
+                        </div>
                         <div class="border rounded-3xl overflow-hidden shadow-sm">
                             <table class="w-full text-left text-sm">
                                 <thead class="bg-slate-50 text-slate-500 font-bold border-b">
                                     <tr>
                                         <th class="p-5">Icono</th>
-                                        <th class="p-5">Nombre Sección</th>
-                                        <th class="p-5">Color ID</th>
+                                        <th class="p-5">Nombre</th>
                                         <th class="p-5 text-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -214,113 +210,89 @@
                         </div>
                     </div>
 
-                    <!-- DATA VIEW -->
-                    <div id="view-data" class="admin-view hidden space-y-10">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
-                                <div class="w-12 h-12 bg-cnciAzul text-white rounded-xl flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-download"></i></div>
-                                <h5 class="text-xl font-bold mb-2">Exportar Base de Datos</h5>
-                                <p class="text-sm text-slate-500 mb-6">Descarga todas las preguntas, respuestas y multimedia en formato CSV compatible con Excel.</p>
-                                <button onclick="exportDataToCSV()" class="bg-white text-cnciAzul border border-cnciAzul px-6 py-3 rounded-xl font-bold hover:bg-cnciAzul hover:text-white transition-all">Generar .CSV</button>
+                    <!-- VIEW: STATS -->
+                    <div id="view-stats" class="admin-view hidden space-y-10">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                            <div class="bg-slate-50 p-8 rounded-[2.5rem]">
+                                <h5 class="font-bold mb-6 flex items-center text-slate-700">
+                                    <i class="fas fa-chart-pie mr-3 text-cnciAzul"></i> Preguntas por Sección
+                                </h5>
+                                <div class="h-64 flex items-center justify-center">
+                                    <canvas id="chart-sections"></canvas>
+                                </div>
                             </div>
-
-                            <div class="bg-orange-50 p-8 rounded-[2rem] border border-orange-100">
-                                <div class="w-12 h-12 bg-cnciNaranja text-white rounded-xl flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-upload"></i></div>
-                                <h5 class="text-xl font-bold mb-2">Importar desde CSV</h5>
-                                <p class="text-sm text-slate-500 mb-6">Sube un archivo .csv con las columnas: question, answer, category, imageUrl, videoUrl.</p>
-                                <input type="file" id="csv-upload" class="hidden" accept=".csv" onchange="importDataFromCSV(event)">
-                                <button onclick="document.getElementById('csv-upload').click()" class="btn-naranja px-6 py-3 rounded-xl">Seleccionar Archivo</button>
+                            <div class="bg-slate-50 p-8 rounded-[2.5rem]">
+                                <h5 class="font-bold mb-6 flex items-center text-slate-700">
+                                    <i class="fas fa-heart mr-3 text-cnciNaranja"></i> Top Likes por Pregunta
+                                </h5>
+                                <div class="h-64 flex items-center justify-center">
+                                    <canvas id="chart-likes"></canvas>
+                                </div>
                             </div>
-                        </div>
-                        <div class="bg-slate-50 p-6 rounded-2xl">
-                            <h6 class="text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">Estructura Sugerida</h6>
-                            <code class="text-[10px] text-slate-600">question,answer,category,imageUrl,videoUrl</code>
                         </div>
                     </div>
 
-                    <!-- FORMS (SHARED) -->
+                    <!-- VIEW: DATA -->
+                    <div id="view-data" class="admin-view hidden space-y-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
+                                <h5 class="text-xl font-bold mb-2">Exportar CSV</h5>
+                                <button onclick="exportDataToCSV()" class="mt-4 bg-white text-cnciAzul border border-cnciAzul px-6 py-3 rounded-xl font-bold hover:bg-cnciAzul hover:text-white transition-all">Generar .CSV</button>
+                            </div>
+                            <div class="bg-orange-50 p-8 rounded-[2rem] border border-orange-100">
+                                <h5 class="text-xl font-bold mb-2">Importar CSV</h5>
+                                <input type="file" id="csv-upload" class="hidden" accept=".csv" onchange="importDataFromCSV(event)">
+                                <button onclick="document.getElementById('csv-upload').click()" class="btn-naranja mt-4 px-6 py-3 rounded-xl">Seleccionar Archivo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FORMS -->
                     <div id="admin-form-container" class="hidden animate__animated animate__fadeIn">
-                        <button onclick="closeForm()" class="mb-6 text-cnciAzul font-bold flex items-center hover:underline">
-                            <i class="fas fa-arrow-left mr-2"></i> Cancelar y Volver
-                        </button>
-                        <div id="faq-form-block" class="form-block hidden">
-                            <h4 id="faq-form-title" class="text-2xl font-black mb-8">Gestión de FAQ</h4>
+                        <button onclick="closeAdminForm()" class="mb-6 text-cnciAzul font-bold flex items-center"><i class="fas fa-arrow-left mr-2"></i> Volver</button>
+                        
+                        <div id="faq-form-block" class="hidden">
+                            <h4 class="text-2xl font-black mb-8" id="faq-title-label">Añadir Pregunta</h4>
                             <form id="faq-form" class="space-y-6 max-w-2xl">
                                 <input type="hidden" id="form-faq-id">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2">
-                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Sección Relacionada</label>
-                                        <select id="form-faq-category" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul"></select>
+                                        <label class="text-xs font-bold uppercase text-slate-400">Sección</label>
+                                        <select id="form-faq-category" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></select>
                                     </div>
                                     <div class="col-span-2">
-                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Pregunta</label>
-                                        <input type="text" id="form-faq-question" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
+                                        <label class="text-xs font-bold uppercase text-slate-400">Pregunta</label>
+                                        <input type="text" id="form-faq-question" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
                                     </div>
                                     <div class="col-span-2">
-                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Respuesta (HTML Permitido)</label>
-                                        <textarea id="form-faq-answer" required rows="4" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">Imagen URL</label>
-                                        <input type="url" id="form-faq-image" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-400 uppercase mb-2">YouTube URL</label>
-                                        <input type="url" id="form-faq-video" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul">
+                                        <label class="text-xs font-bold uppercase text-slate-400">Respuesta</label>
+                                        <textarea id="form-faq-answer" required rows="4" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></textarea>
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full btn-naranja py-5 rounded-2xl shadow-xl shadow-orange-100 text-lg">Guardar FAQ</button>
+                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-xl">Guardar Pregunta</button>
                             </form>
                         </div>
 
-                        <div id="cat-form-block" class="form-block hidden">
-                            <h4 id="cat-form-title" class="text-2xl font-black mb-8">Gestión de Sección</h4>
+                        <div id="cat-form-block" class="hidden">
+                            <h4 class="text-2xl font-black mb-8" id="cat-title-label">Nueva Sección</h4>
                             <form id="cat-form" class="space-y-6 max-w-md">
                                 <input type="hidden" id="form-cat-id">
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Nombre de la Sección</label>
-                                    <input type="text" id="form-cat-name" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: Inscripciones">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Icono (FontAwesome Class)</label>
-                                    <input type="text" id="form-cat-icon" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: fas fa-star">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-400 uppercase mb-2">Color Borde (Tailwind Class)</label>
-                                    <input type="text" id="form-cat-color" required class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-cnciAzul" placeholder="Ej: border-cnciAzul">
-                                </div>
-                                <button type="submit" class="w-full btn-naranja py-5 rounded-2xl shadow-xl shadow-orange-100 text-lg">Guardar Sección</button>
+                                <input type="text" id="form-cat-name" placeholder="Nombre (Ej: Ingreso)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
+                                <input type="text" id="form-cat-icon" placeholder="Icono (Ej: fas fa-user)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
+                                <input type="text" id="form-cat-color" placeholder="Color Borde (Ej: border-cnciAzul)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
+                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl">Guardar Sección</button>
                             </form>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Floating Chat -->
-    <div id="chat-window" class="fixed bottom-28 right-8 w-[92vw] md:w-[400px] h-[75vh] max-h-[650px] bg-white rounded-[2.5rem] shadow-2xl z-50 overflow-hidden hidden animate__animated animate__fadeInUp border border-slate-100">
-        <div class="gradient-bg p-8 text-white flex items-center justify-between">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mr-4 backdrop-blur-sm"><i class="fas fa-robot"></i></div>
-                <div><h4 class="font-bold text-lg">Asistente Virtual</h4><span class="text-xs font-bold text-blue-200">Soporte 24/7</span></div>
-            </div>
-            <button id="close-chat-btn"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="chat-messages" class="flex-grow overflow-y-auto p-6 space-y-6 bg-slate-50/50"></div>
-        <div class="p-6 bg-white border-t flex gap-3">
-            <input type="text" id="user-input" placeholder="Escribe tu duda..." class="bg-slate-100 w-full rounded-2xl px-6 py-4 outline-none">
-            <button id="send-btn" class="w-14 h-14 bg-cnciAzul text-white rounded-2xl"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <button id="toggle-chat-btn" class="fixed bottom-8 right-8 w-20 h-20 gradient-bg text-white rounded-[2rem] shadow-2xl flex items-center justify-center z-40">
-        <i class="fas fa-comment-dots text-3xl"></i>
-    </button>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -329,140 +301,136 @@
             projectId: "apppaneldesupcallcenter",
             storageBucket: "apppaneldesupcallcenter.firebasestorage.app",
             messagingSenderId: "1091325080953",
-            appId: "1:1091325080953:web:14fd225a15f532f92feba8",
-            measurementId: "G-MGBBK91GZR"
+            appId: "1:1091325080953:web:14fd225a15f532f92feba8"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const apiKey = ""; // Gemini AI
 
-        let user = null;
         let faqData = [];
         let catData = [];
-        let currentAdminFilter = 'all';
-        let currentAdminMainTab = 'faqs';
+        let filteredFaqs = [];
+        let faqSort = { field: 'question', order: 'asc' };
+        let faqFilters = { question: '', category: '', likes: '' };
+        let charts = {};
 
-        // 1. AUTH & INIT
+        // INIT
         const init = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
+            await signInAnonymously(auth);
+            setupListeners();
         };
 
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (u) {
-                setupListeners();
-            }
-        });
-
-        // 2. FIRESTORE LISTENERS
         const setupListeners = () => {
-            // Secciones
-            const catsRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
-            onSnapshot(catsRef, (snap) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'categories'), (snap) => {
                 catData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderCategoriesUI();
                 renderAdminCats();
                 updateFormSelectors();
-            }, (err) => console.error(err));
+                if (charts.sections) updateStatsCharts();
+            });
 
-            // FAQs
-            const faqsRef = collection(db, 'artifacts', appId, 'public', 'data', 'faqs');
-            onSnapshot(faqsRef, (snap) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), (snap) => {
                 faqData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                applyAllFaqProcessing();
                 renderFAQs(faqData);
-                renderAdminFaqs();
-            }, (err) => console.error(err));
+                if (charts.likes) updateStatsCharts();
+            });
         };
 
-        // 3. UI RENDERING (PUBLIC)
-        const renderCategoriesUI = () => {
-            const grid = document.getElementById('category-grid');
-            grid.innerHTML = catData.map(cat => `
-                <button onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl text-center border-b-8 ${cat.colorClass || 'border-cnciAzul'} animate__animated animate__fadeIn">
-                    <div class="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="${cat.iconClass} text-xl"></i></div>
-                    <span class="font-bold text-slate-700 block">${cat.name}</span>
-                </button>
-            `).join('');
-        };
-
+        // UI PUBLIC
         window.renderFAQs = (data) => {
             const list = document.getElementById('faq-list');
             const empty = document.getElementById('empty-search');
             list.innerHTML = '';
             
-            if (data.length === 0) {
-                empty.classList.remove('hidden');
-                return;
-            }
+            if (data.length === 0) { empty.classList.remove('hidden'); return; }
             empty.classList.add('hidden');
 
-            data.forEach((faq, idx) => {
-                const videoId = getYoutubeId(faq.videoUrl);
-                const item = document.createElement('div');
-                item.className = `accordion-item border border-slate-100 rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all animate__animated animate__fadeInUp`;
-                item.style.animationDelay = `${idx * 0.05}s`;
-                
-                item.innerHTML = `
-                    <button class="w-full flex items-center justify-between p-7 text-left group" onclick="this.parentElement.classList.toggle('active')">
-                        <span class="font-bold pr-6 flex items-center text-slate-800 text-lg">
-                            <span class="w-10 h-10 bg-slate-50 text-cnciAzul rounded-xl flex items-center justify-center mr-4 group-hover:bg-cnciAzul group-hover:text-white transition-colors">
-                                <i class="fas fa-question text-xs"></i>
-                            </span>
-                            ${faq.question}
-                        </span>
+            data.forEach(faq => {
+                const div = document.createElement('div');
+                div.className = "accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm";
+                div.innerHTML = `
+                    <button class="w-full flex items-center justify-between p-6 text-left" onclick="this.parentElement.classList.toggle('active')">
+                        <span class="font-bold flex items-center"><i class="fas fa-question-circle mr-3 text-cnciAzul"></i> ${faq.question}</span>
                         <i class="fas fa-chevron-down text-slate-300 chevron transition-all"></i>
                     </button>
                     <div class="accordion-content">
-                        <div class="p-8 border-t border-slate-50 text-slate-600 leading-relaxed">
-                            <div class="prose prose-slate max-w-none">${faq.answer}</div>
-                            ${faq.imageUrl ? `<div class="media-container"><img src="${faq.imageUrl}" onerror="this.parentElement.style.display='none'"></div>` : ''}
-                            ${videoId ? `<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>` : ''}
-                            
-                            <div class="mt-10 pt-6 border-t border-slate-50 flex items-center justify-between">
-                                <span class="text-[10px] font-black uppercase text-slate-300 tracking-widest">${faq.category}</span>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="handleLike('${faq.id}', event)" class="like-btn px-4 py-2 rounded-full border border-slate-100 flex items-center gap-2 hover:bg-orange-50 hover:text-cnciNaranja transition-all text-slate-400">
-                                        <i class="fas fa-heart"></i>
-                                        <span class="font-bold text-xs">${faq.likes || 0}</span>
-                                    </button>
-                                </div>
+                        <div class="p-8 border-t bg-slate-50/30">
+                            <p class="leading-relaxed text-slate-600">${faq.answer}</p>
+                            <div class="mt-6 flex justify-between items-center">
+                                <span class="text-[10px] font-black uppercase text-slate-400">${faq.category}</span>
+                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:text-cnciNaranja transition-all">
+                                    <i class="fas fa-heart"></i> <span>${faq.likes || 0}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 `;
-                list.appendChild(item);
+                list.appendChild(div);
             });
         };
 
-        // 4. ADMIN RENDERING
+        const renderCategoriesUI = () => {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = catData.map(cat => `
+                <div onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 rounded-[2rem] shadow-lg text-center border-b-4 ${cat.colorClass}">
+                    <i class="${cat.iconClass} text-2xl mb-3 text-slate-600 block"></i>
+                    <span class="font-bold text-slate-700">${cat.name}</span>
+                </div>
+            `).join('');
+        };
+
+        // ADMIN PROCESSING
+        const applyAllFaqProcessing = () => {
+            // 1. Filter
+            filteredFaqs = faqData.filter(f => {
+                const qMatch = f.question.toLowerCase().includes(faqFilters.question.toLowerCase());
+                const cMatch = f.category.toLowerCase().includes(faqFilters.category.toLowerCase());
+                const lMatch = f.likes.toString().includes(faqFilters.likes);
+                return qMatch && cMatch && lMatch;
+            });
+            // 2. Sort
+            filteredFaqs.sort((a, b) => {
+                let valA = a[faqSort.field];
+                let valB = b[faqSort.field];
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (valA < valB) return faqSort.order === 'asc' ? -1 : 1;
+                if (valA > valB) return faqSort.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderAdminFaqs();
+        };
+
+        window.applyFaqFilters = (field, val) => {
+            faqFilters[field] = val;
+            applyAllFaqProcessing();
+        };
+
+        window.sortFaqs = (field) => {
+            if (faqSort.field === field) {
+                faqSort.order = faqSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                faqSort.field = field;
+                faqSort.order = 'asc';
+            }
+            applyAllFaqProcessing();
+        };
+
         const renderAdminFaqs = () => {
             const body = document.getElementById('admin-faqs-body');
-            const filters = document.getElementById('faq-category-filters');
-            
-            // Render Filters
-            filters.innerHTML = `<button onclick="setFaqFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold border ${currentAdminFilter === 'all' ? 'bg-cnciAzul text-white' : 'bg-white text-slate-400'}">Todas</button>`;
-            catData.forEach(c => {
-                filters.innerHTML += `<button onclick="setFaqFilter('${c.id}')" class="px-4 py-1.5 rounded-full text-xs font-bold border ${currentAdminFilter === c.id ? 'bg-cnciAzul text-white' : 'bg-white text-slate-400'}">${c.name}</button>`;
-            });
-
-            // Filter Data
-            const filtered = currentAdminFilter === 'all' ? faqData : faqData.filter(f => f.category === currentAdminFilter);
-            
-            body.innerHTML = filtered.map(faq => `
+            body.innerHTML = filteredFaqs.map(f => `
                 <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-5 font-bold text-slate-800">${faq.question}</td>
-                    <td class="p-5 uppercase text-[10px] font-black text-slate-400">${faq.category}</td>
-                    <td class="p-5 text-center font-bold text-cnciNaranja">${faq.likes || 0}</td>
+                    <td class="p-5 font-medium">${f.question}</td>
+                    <td class="p-5 text-[10px] font-black uppercase text-slate-400">${f.category}</td>
+                    <td class="p-5 text-center font-bold text-cnciNaranja">${f.likes || 0}</td>
                     <td class="p-5 text-right whitespace-nowrap">
-                        <button onclick="editFaq('${faq.id}')" class="p-2 text-cnciAzul hover:bg-blue-50 rounded-lg"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteFaq('${faq.id}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                        <button onclick="editFaq('${f.id}')" class="p-2 text-cnciAzul"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteFaq('${f.id}')" class="p-2 text-red-400"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -470,250 +438,165 @@
 
         const renderAdminCats = () => {
             const body = document.getElementById('admin-cats-body');
-            body.innerHTML = catData.map(cat => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-5 text-slate-400"><i class="${cat.iconClass} text-xl"></i></td>
-                    <td class="p-5 font-bold text-slate-800">${cat.name}</td>
-                    <td class="p-5 font-mono text-xs text-slate-400">${cat.colorClass}</td>
+            body.innerHTML = catData.map(c => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-5"><i class="${c.iconClass} text-slate-400"></i></td>
+                    <td class="p-5 font-bold">${c.name}</td>
                     <td class="p-5 text-right">
-                        <button onclick="editCat('${cat.id}')" class="p-2 text-cnciAzul hover:bg-blue-50 rounded-lg"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteCat('${cat.id}')" class="p-2 text-red-400 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                        <button onclick="editCat('${c.id}')" class="p-2 text-cnciAzul"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCat('${c.id}')" class="p-2 text-red-400"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         };
 
-        // 5. ACTIONS & HELPERS
-        window.handleLike = async (id, e) => {
-            e.stopPropagation();
-            const btn = e.currentTarget;
-            if (btn.classList.contains('liked')) return;
-            
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), {
-                    likes: increment(1)
-                });
-                btn.classList.add('liked');
-            } catch (err) { console.error(err); }
+        // STATS
+        const updateStatsCharts = () => {
+            // Chart Sections
+            const secCounts = {};
+            catData.forEach(c => secCounts[c.id] = 0);
+            faqData.forEach(f => { if(secCounts[f.category] !== undefined) secCounts[f.category]++; });
+
+            const ctx1 = document.getElementById('chart-sections').getContext('2d');
+            if (charts.sections) charts.sections.destroy();
+            charts.sections = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(secCounts).map(id => catData.find(c => c.id === id)?.name || id),
+                    datasets: [{
+                        label: 'Preguntas',
+                        data: Object.values(secCounts),
+                        backgroundColor: '#2a6aff',
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Chart Likes
+            const topLikes = [...faqData].sort((a,b) => (b.likes||0) - (a.likes||0)).slice(0, 5);
+            const ctx2 = document.getElementById('chart-likes').getContext('2d');
+            if (charts.likes) charts.likes.destroy();
+            charts.likes = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: topLikes.map(f => f.question.substring(0, 15) + '...'),
+                    datasets: [{
+                        label: 'Votos útiles',
+                        data: topLikes.map(f => f.likes || 0),
+                        backgroundColor: '#ff8500',
+                        borderRadius: 8
+                    }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
         };
 
-        window.setFaqFilter = (catId) => {
-            currentAdminFilter = catId;
-            renderAdminFaqs();
-        };
-
+        // TABS & FORMS
         window.switchAdminMainTab = (tab) => {
-            currentAdminMainTab = tab;
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
-            
             document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            
-            document.getElementById('admin-create-btn-container').style.display = (tab === 'data') ? 'none' : 'block';
-            closeForm();
+            if (tab === 'stats') setTimeout(updateStatsCharts, 100);
+            closeAdminForm();
         };
 
-        const updateFormSelectors = () => {
-            const select = document.getElementById('form-faq-category');
-            select.innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        };
-
-        window.openCreateForm = () => {
-            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+        window.openFaqForm = () => {
+            document.getElementById('view-faqs').classList.add('hidden');
             document.getElementById('admin-form-container').classList.remove('hidden');
-            document.querySelectorAll('.form-block').forEach(b => b.classList.add('hidden'));
-            
-            if (currentAdminMainTab === 'faqs') {
-                document.getElementById('faq-form-block').classList.remove('hidden');
-                document.getElementById('faq-form').reset();
-                document.getElementById('form-faq-id').value = '';
-                document.getElementById('faq-form-title').innerText = "Nueva FAQ";
-            } else {
-                document.getElementById('cat-form-block').classList.remove('hidden');
-                document.getElementById('cat-form').reset();
-                document.getElementById('form-cat-id').value = '';
-                document.getElementById('cat-form-title').innerText = "Nueva Sección";
-            }
+            document.getElementById('faq-form-block').classList.remove('hidden');
+            document.getElementById('cat-form-block').classList.add('hidden');
+            document.getElementById('faq-form').reset();
+            document.getElementById('form-faq-id').value = '';
         };
 
-        window.closeForm = () => {
+        window.openCatForm = () => {
+            document.getElementById('view-categories').classList.add('hidden');
+            document.getElementById('admin-form-container').classList.remove('hidden');
+            document.getElementById('cat-form-block').classList.remove('hidden');
+            document.getElementById('faq-form-block').classList.add('hidden');
+            document.getElementById('cat-form').reset();
+            document.getElementById('form-cat-id').value = '';
+        };
+
+        window.closeAdminForm = () => {
             document.getElementById('admin-form-container').classList.add('hidden');
-            document.getElementById(`view-${currentAdminMainTab}`).classList.remove('hidden');
+            document.getElementById('view-faqs').classList.add('hidden');
+            document.getElementById('view-categories').classList.add('hidden');
+            document.getElementById('view-stats').classList.add('hidden');
+            document.getElementById('view-data').classList.add('hidden');
+            
+            const activeTab = document.querySelector('.admin-tab.active').id.replace('tab-', '');
+            document.getElementById(`view-${activeTab}`).classList.remove('hidden');
         };
 
-        // 6. DB OPERATIONS (FAQS)
+        // CRUD
         document.getElementById('faq-form').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('form-faq-id').value;
-            const payload = {
+            const data = {
                 question: document.getElementById('form-faq-question').value,
                 answer: document.getElementById('form-faq-answer').value,
                 category: document.getElementById('form-faq-category').value,
-                imageUrl: document.getElementById('form-faq-image').value,
-                videoUrl: document.getElementById('form-faq-video').value,
-                updatedAt: Date.now()
+                likes: id ? faqData.find(f => f.id === id).likes || 0 : 0
             };
-
-            try {
-                if (id) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), payload);
-                } else {
-                    payload.createdAt = Date.now();
-                    payload.likes = 0;
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), payload);
-                }
-                closeForm();
-                showToast("FAQ guardada", "success");
-            } catch (err) { showToast("Error al guardar"); }
+            if (id) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), data);
+            else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
+            closeAdminForm();
         };
 
-        window.editFaq = (id) => {
-            const faq = faqData.find(f => f.id === id);
-            openCreateForm();
-            document.getElementById('form-faq-id').value = faq.id;
-            document.getElementById('form-faq-question').value = faq.question;
-            document.getElementById('form-faq-answer').value = faq.answer;
-            document.getElementById('form-faq-category').value = faq.category;
-            document.getElementById('form-faq-image').value = faq.imageUrl || '';
-            document.getElementById('form-faq-video').value = faq.videoUrl || '';
-            document.getElementById('faq-form-title').innerText = "Editar FAQ";
-        };
-
-        window.deleteFaq = async (id) => {
-            if (confirm("¿Eliminar pregunta permanentemente?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id));
-                showToast("FAQ eliminada");
-            }
-        };
-
-        // 7. DB OPERATIONS (CATEGORIES)
         document.getElementById('cat-form').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('form-cat-id').value;
-            const payload = {
-                name: document.getElementById('form-cat-name').value,
+            const name = document.getElementById('form-cat-name').value;
+            const cid = id || name.toLowerCase().replace(/\s/g, '-');
+            const data = {
+                id: cid,
+                name: name,
                 iconClass: document.getElementById('form-cat-icon').value,
-                colorClass: document.getElementById('form-cat-color').value,
-                id: document.getElementById('form-cat-name').value.toLowerCase().replace(/\s/g, '-')
+                colorClass: document.getElementById('form-cat-color').value
             };
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', cid), data);
+            closeAdminForm();
+        };
 
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'categories', id || payload.id);
-                await setDoc(docRef, payload);
-                closeForm();
-                showToast("Sección actualizada", "success");
-            } catch (err) { showToast("Error al guardar sección"); }
+        window.editFaq = (id) => {
+            const f = faqData.find(f => f.id === id);
+            openFaqForm();
+            document.getElementById('form-faq-id').value = f.id;
+            document.getElementById('form-faq-question').value = f.question;
+            document.getElementById('form-faq-answer').value = f.answer;
+            document.getElementById('form-faq-category').value = f.category;
+            document.getElementById('faq-title-label').innerText = "Editar Pregunta";
         };
 
         window.editCat = (id) => {
-            const cat = catData.find(c => c.id === id);
-            openCreateForm();
-            document.getElementById('form-cat-id').value = cat.id;
-            document.getElementById('form-cat-name').value = cat.name;
-            document.getElementById('form-cat-icon').value = cat.iconClass;
-            document.getElementById('form-cat-color').value = cat.colorClass;
-            document.getElementById('cat-form-title').innerText = "Editar Sección";
+            const c = catData.find(c => c.id === id);
+            openCatForm();
+            document.getElementById('form-cat-id').value = c.id;
+            document.getElementById('form-cat-name').value = c.name;
+            document.getElementById('form-cat-icon').value = c.iconClass;
+            document.getElementById('form-cat-color').value = c.colorClass;
         };
 
-        window.deleteCat = async (id) => {
-            if (confirm("¿Eliminar sección? Esto podría desvincular preguntas asociadas.")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id));
-                showToast("Sección eliminada");
-            }
+        window.deleteFaq = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id)); };
+        window.deleteCat = async (id) => { if(confirm("¿Eliminar sección?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id)); };
+
+        const updateFormSelectors = () => {
+            const sel = document.getElementById('form-faq-category');
+            sel.innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         };
 
-        // 8. IMPORT / EXPORT CSV
-        window.exportDataToCSV = () => {
-            let csv = "question,answer,category,imageUrl,videoUrl,likes\n";
-            faqData.forEach(f => {
-                const cleanAnswer = f.answer.replace(/"/g, '""');
-                csv += `"${f.question}","${cleanAnswer}","${f.category}","${f.imageUrl || ''}","${f.videoUrl || ''}",${f.likes || 0}\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Ayuda_CNCI_${new Date().toLocaleDateString()}.csv`;
-            a.click();
-        };
-
-        window.importDataFromCSV = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const rows = text.split('\n').slice(1);
-                let imported = 0;
-                
-                showToast("Importando datos...", "success");
-
-                for (let row of rows) {
-                    const columns = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    if (columns && columns.length >= 3) {
-                        const payload = {
-                            question: columns[0].replace(/"/g, ''),
-                            answer: columns[1].replace(/"/g, '').replace(/""/g, '"'),
-                            category: columns[2].replace(/"/g, ''),
-                            imageUrl: (columns[3] || '').replace(/"/g, ''),
-                            videoUrl: (columns[4] || '').replace(/"/g, ''),
-                            likes: parseInt(columns[5]) || 0,
-                            createdAt: Date.now()
-                        };
-                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), payload);
-                        imported++;
-                    }
-                }
-                showToast(`Se importaron ${imported} preguntas`, "success");
-            };
-            reader.readAsText(file);
-        };
-
-        // UI HELPERS
-        const showToast = (msg, type = 'error') => {
-            const t = document.getElementById('status-toast');
-            const m = document.getElementById('status-msg');
-            t.className = `fixed top-4 right-4 z-[100] animate__animated animate__fadeInRight px-6 py-3 rounded-xl shadow-lg flex items-center ${type === 'error' ? 'bg-red-500' : 'bg-emerald-500'} text-white`;
-            m.innerText = msg;
-            t.classList.remove('hidden');
-            setTimeout(() => t.classList.add('hidden'), 4000);
-        };
-
-        const getYoutubeId = (url) => {
-            if (!url) return null;
-            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
-            return (match && match[2].length === 11) ? match[2] : null;
-        };
-
-        window.filterByCat = (catId) => {
-            const data = faqData.filter(f => f.category === catId);
-            const cat = catData.find(c => c.id === catId);
-            document.getElementById('section-title').innerText = cat ? cat.name : "Preguntas Frecuentes";
-            renderFAQs(data);
-            window.scrollTo({ top: document.getElementById('faq-list').offsetTop - 200, behavior: 'smooth' });
+        window.handleLike = async (id, e) => {
+            e.stopPropagation();
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), { likes: increment(1) });
         };
 
         document.getElementById('admin-lock-btn').onclick = () => {
-            const pass = prompt("🔐 Acceso Administrativo:");
-            if (pass === "cnci2026") {
-                document.getElementById('admin-modal').classList.remove('hidden');
-                switchAdminMainTab('faqs');
-            } else {
-                showToast("Clave inválida");
-            }
+            if (prompt("Clave:") === "cnci2026") document.getElementById('admin-modal').classList.remove('hidden');
         };
-
         document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
-        document.getElementById('toggle-chat-btn').onclick = () => document.getElementById('chat-window').classList.toggle('hidden');
-        document.getElementById('close-chat-btn').onclick = () => document.getElementById('chat-window').classList.add('hidden');
-
-        document.getElementById('search-input').oninput = (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = faqData.filter(f => f.question.toLowerCase().includes(term) || f.answer.toLowerCase().includes(term));
-            renderFAQs(filtered);
-        };
 
         init();
     </script>
