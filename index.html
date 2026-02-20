@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Ayuda - Universidad CNCI</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico?v=1">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=1">
+    <link rel="apple-touch-icon" href="favicon.ico?v=1">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon" type="image/x-icon" href="facivon.ico">
-    <link rel="apple-touch-icon" href="facivon.ico">
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
-
     <script>
         window.tailwind.config = {
             theme: {
@@ -32,8 +33,9 @@
         // VARIABLES DE ESTADO GLOBAL (Para filtros y paginación)
         let currentPage = 1;
         const itemsPerPage = 10;
-        let currentCategory = 'all'; 
-        let searchTerm = '';        
+        let currentCategory = 'all';
+        let searchTerm = '';
+        let openedFaqId = null; // Guardará el ID de la pregunta que esté abierta
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -71,10 +73,10 @@
         </a>
 
         <div class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
-            <a href="https://alumnos.cnci.mx/login" 
+            <a href="https://www.office.com/" 
                target="_blank" 
                class="hover:text-blue-700 transition-colors duration-300">
-               Portal Alumnos
+               Office 365
             </a>
             
             <a href="https://cnci.unlimitedlearning.io/" 
@@ -487,6 +489,24 @@
             });
         };
 
+        // --- NUEVO: Control de apertura ---
+        let openedFaqId = null; 
+
+        window.toggleFaq = (id, btn) => {
+            const parent = btn.parentElement;
+            const isOpening = !parent.classList.contains('active');
+            
+            // Cerramos otros (opcional, para que solo haya uno abierto)
+            document.querySelectorAll('.accordion-item').forEach(item => item.classList.remove('active'));
+            
+            if (isOpening) {
+                parent.classList.add('active');
+                openedFaqId = id; // Memorizamos cuál se abrió
+            } else {
+                parent.classList.remove('active');
+                openedFaqId = null; // Limpiamos si se cerró manualmente
+            }
+        };
         // UI PUBLIC
         window.renderFAQs = () => {
             const list = document.getElementById('faq-list');
@@ -500,14 +520,17 @@
                                      faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
                 return matchesCat && matchesSearch;
             });
-        
+            
+            // ORDENAMIENTO POR LIKES (De mayor a menor)
+            filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            // ------------------------------
             // 2. LÓGICA DE PAGINACIÓN
             const totalPages = Math.ceil(filtered.length / itemsPerPage);
             if (currentPage > totalPages) currentPage = 1; // Reset si los filtros reducen las páginas
             
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedItems = filtered.slice(startIndex, startIndex + itemsPerPage);
-        
+
             // 3. RENDERIZADO DE PREGUNTAS
             list.innerHTML = '';
             if (filtered.length === 0) {
@@ -517,12 +540,27 @@
             }
             empty.classList.add('hidden');
         
-            paginatedItems.forEach(faq => {
+            paginatedItems.forEach((faq, index) => {
+                const isTop = (faq.likes > 0 && currentPage === 1 && index === 0);
+                
+                // Si el ID coincide con el que guardamos, le ponemos la clase active
+                const isActiveClass = (faq.id === openedFaqId) ? 'active' : '';
+                
                 const div = document.createElement('div');
-                div.className = "accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn";
+                // IMPORTANTE: Incluir ${isActiveClass} aquí
+                div.className = `accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn ${isActiveClass}`;
                 div.innerHTML = `
-                    <button class="w-full flex items-center justify-between p-6 text-left" onclick="this.parentElement.classList.toggle('active')">
-                        <span class="font-bold flex items-center"><i class="fas fa-question-circle mr-3 text-cnciAzul"></i> ${faq.question}</span>
+                    <button class="w-full flex items-center justify-between p-6 text-left" 
+                            onclick="toggleFaq('${faq.id}', this)">
+                        <span class="font-bold flex items-center">
+                            <i class="fas fa-question-circle mr-3 text-cnciAzul"></i> 
+                            ${faq.question}
+                            ${isTop ? `
+                                <span class="ml-3 text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-lg flex items-center gap-1 animate-pulse border border-orange-200">
+                                    <i class="fas fa-fire"></i> DESTACADA
+                                </span>
+                            ` : ''}
+                        </span>
                         <i class="fas fa-chevron-down text-slate-300 chevron transition-all"></i>
                     </button>
                     <div class="accordion-content">
@@ -532,8 +570,9 @@
                                 <span class="text-[10px] font-black uppercase text-slate-400">
                                     ${catData.find(c => c.id === faq.category)?.name || faq.category}
                                 </span>
-                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:text-cnciNaranja transition-all">
-                                    <i class="fas fa-heart"></i> <span>${faq.likes || 0}</span>
+                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:text-cnciNaranja transition-all shadow-sm">
+                                    <i class="fas fa-heart ${faq.likes > 0 ? 'text-red-500' : ''}"></i> 
+                                    <span class="font-bold text-sm">${faq.likes || 0}</span>
                                 </button>
                             </div>
                         </div>
@@ -544,7 +583,7 @@
         
             // 4. RENDERIZADO DE BOTONCILLOS DE PAGINACIÓN
             renderPagination(totalPages);
-        };
+            };
         
         // Nueva función de apoyo para los botones
         const renderPagination = (totalPages) => {
@@ -805,8 +844,22 @@
         };
 
         window.handleLike = async (id, e) => {
-            e.stopPropagation();
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), { likes: increment(1) });
+    // ESTO ES LO MÁS IMPORTANTE:
+    // Evita que el clic llegue al botón del acordeón y lo cierre
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), { 
+                    likes: increment(1) 
+                });
+                // Nota: No necesitas recargar la página, Firestore en tiempo real 
+                // debería detectar el cambio y renderizar de nuevo.
+            } catch (error) {
+                console.error("Error al dar like:", error);
+            }
         };
 
         // --- LÓGICA DE FILTRADO Y LIMPIEZA ---
