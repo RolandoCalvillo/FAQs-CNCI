@@ -513,11 +513,30 @@
             const empty = document.getElementById('empty-search');
             const paginationContainer = document.getElementById('pagination-container');
             
-            // 1. FILTRADO COMBINADO (Categoría + Búsqueda)
+            // 1. FILTRADO COMBINADO MEJORADO
             let filtered = faqData.filter(faq => {
                 const matchesCat = currentCategory === 'all' || faq.category === currentCategory;
-                const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                     faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                // Si la búsqueda es muy corta (1 o 2 letras), no filtramos por texto (opcional)
+                if (searchTerm.trim().length < 3) return matchesCat;
+            
+                // Función interna para quitar acentos y pasar a minúsculas
+                const normalize = (text) => 
+                    text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+                const searchNormalized = normalize(searchTerm);
+                const questionNormalized = normalize(faq.question);
+                const answerNormalized = normalize(faq.answer);
+            
+                // Dividimos la búsqueda en palabras sueltas
+                const words = searchNormalized.split(' ').filter(w => w.length > 0);
+                
+                // Verificamos que TODAS las palabras estén presentes
+                const matchesSearch = words.every(word => 
+                    questionNormalized.includes(word) || 
+                    answerNormalized.includes(word)
+                );
+            
                 return matchesCat && matchesSearch;
             });
             
@@ -615,9 +634,18 @@
         window.changePage = (num) => {
             currentPage = num;
             window.renderFAQs();
-            window.scrollTo({ top: document.getElementById('category-grid').offsetTop - 20, behavior: 'smooth' });
+            
+            // CAMBIO: Apuntamos directamente al contenedor del buscador o de la lista
+            // Usamos 'faq-list' o el contenedor del buscador para que quede en el top visual
+            const target = document.getElementById('search-container') || document.getElementById('faq-list');
+            
+            if (target) {
+                window.scrollTo({ 
+                    top: target.offsetTop - 100, // Restamos 100px para que no quede pegado al borde superior
+                    behavior: 'smooth' 
+                });
+            }
         };
-
         const renderCategoriesUI = () => {
             const grid = document.getElementById('category-grid');
             if (!grid) return;
