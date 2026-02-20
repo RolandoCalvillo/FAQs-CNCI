@@ -347,28 +347,33 @@
 
         // --- LÓGICA DE EXPORTACIÓN ---
         window.exportDataToCSV = () => {
-            if (faqData.length === 0) {
+            if (!faqData || faqData.length === 0) {
                 alert("No hay datos para exportar");
                 return;
             }
         
-            const headers = ["question", "answer", "category", "likes"];
-            
-            const rows = faqData.map(faq => [
-                `"${(faq.question || "").replace(/"/g, '""')}"`, // Escapa comillas dobles
-                `"${(faq.answer || "").replace(/"/g, '""')}"`,   // Escapa comillas dobles
-                `"${(faq.category || "").replace(/"/g, '""')}"`,
-                faq.likes || 0
-            ]);
+            // El secreto: Añadimos el BOM de UTF-8 (\ufeff) al inicio del contenido
+            let csvContent = "\ufeffquestion,answer,category,likes\n";
         
-            // Añadimos el BOM (Byte Order Mark) para que Excel reconozca los acentos automáticamente
-            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-            
+            faqData.forEach(faq => {
+                // Limpiamos y escapamos las comillas dobles internas
+                const q = `"${faq.question.replace(/"/g, '""')}"`;
+                const a = `"${faq.answer.replace(/"/g, '""')}"`;
+                const c = `"${faq.category}"`;
+                const l = faq.likes || 0;
+        
+                csvContent += `${q},${a},${c},${l}\n`;
+            });
+        
+            // Creamos el archivo con codificación explícita UTF-8
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
+            const fecha = new Date().toISOString().split('T')[0];
+            
             link.setAttribute("href", url);
-            link.setAttribute("download", `respaldo_cnci_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("download", `respaldo_cnci_${fecha}.csv`);
+            link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -381,42 +386,65 @@
         
             const reader = new FileReader();
             reader.onload = async (e) => {
-                // Usamos 'utf-8' explícitamente para respetar acentos y eñes
                 const text = e.target.result;
                 
-                // Dividir por líneas pero ignorar líneas vacías
-                const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-                
+                // Procesador robusto que respeta saltos de línea y comillas dentro de celdas
+                const parseCSV = (str) => {
+                    const arr = [];
+                    let quote = false;
+                    let col = '';
+                    let row = [];
+        
+                    for (let c = 0; c < str.length; c++) {
+                        let char = str[c], nextChar = str[c+1];
+                        // Maneja comillas dobles escapadas ("")
+                        if (char === '"' && quote && nextChar === '"') { col += char; c++; continue; }
+                        // Detecta inicio o fin de una celda con comillas
+                        if (char === '"') { quote = !quote; continue; }
+                        // Separador de columna fuera de comillas
+                        if (char === ',' && !quote) { row.push(col); col = ''; continue; }
+                        // Salto de línea fuera de comillas (fin de fila)
+                        if ((char === '\r' || char === '\n') && !quote) {
+                            if (col !== '' || row.length > 0) {
+                                row.push(col);
+                                arr.push(row);
+                            }
+                            row = []; col = '';
+                            if (char === '\r' && nextChar === '\n') c++; // Salta \n si es \r\n
+                            continue;
+                        }
+                        col += char;
+                    }
+                    if (row.length > 0 || col !== '') { row.push(col); arr.push(row); }
+                    return arr;
+                };
+        
+                const rows = parseCSV(text);
                 let count = 0;
-                // Empezamos en i=1 para saltar el encabezado
-                for (let i = 1; i < lines.length; i++) {
-                    // Lógica robusta para separar por comas (;) o comas (,) 
-                    // respetando el texto encerrado en comillas ""
-                    const regex = /(".*?"|[^;]+)(?=\s*;|\s*$)/g; 
-                    // Nota: He cambiado la lógica para detectar punto y coma (;) que es más seguro
-                    const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    
-                    if (values && values.length >= 3) {
+        
+                // Saltamos la fila 0 (encabezados: question, answer, category, likes)
+                for (let i = 1; i < rows.length; i++) {
+                    const values = rows[i];
+                    // Validamos que la fila tenga datos mínimos
+                    if (values.length >= 3 && values[0].trim() !== "") {
                         try {
                             const data = {
-                                // Limpiamos las comillas externas y restauramos las internas escapadas
-                                question: values[0].replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
-                                answer: values[1].replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
-                                category: values[2].replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
+                                question: values[0].trim(),
+                                answer: values[1].trim(),
+                                category: values[2].trim(),
                                 likes: parseInt(values[3]) || 0
                             };
         
                             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
                             count++;
                         } catch (err) {
-                            console.error("Error en fila " + i + ":", err);
+                            console.error("Error procesando fila " + i + ":", err);
                         }
                     }
                 }
-                alert(`¡Importación Exitosa! Se añadieron ${count} preguntas con formato correcto.`);
+                alert(`¡Importación Exitosa! Se añadieron ${count} preguntas correctamente.`);
                 event.target.value = ''; 
             };
-            // Forzamos la lectura en UTF-8
             reader.readAsText(file, 'UTF-8');
         };
         // INIT
