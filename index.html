@@ -28,6 +28,13 @@
             }
         }
     </script>
+    <script>
+        // VARIABLES DE ESTADO GLOBAL (Para filtros y paginación)
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentCategory = 'all'; 
+        let searchTerm = '';        
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; background-color: #f4f7fe; overflow-x: hidden; }
@@ -100,11 +107,19 @@
         <div class="max-w-4xl mx-auto text-center animate__animated animate__fadeInDown">
             <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Centro de Ayuda CNCI 🎓</h1>
             <p class="text-blue-100 mb-10 text-lg md:text-xl opacity-90 max-w-2xl mx-auto">Encuentra respuestas inmediatas sobre tu proceso académico.</p>
+            
             <div class="relative max-w-2xl mx-auto group">
                 <input type="text" id="search-input" placeholder="¿Cómo ingreso a Blackboard?..." 
                        class="w-full py-6 px-8 rounded-3xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg pr-16">
                 <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center">
                     <i class="fas fa-search text-white"></i>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button onclick="clearAllFilters()" class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-cnciNaranja hover:border-cnciNaranja transition-all duration-300 flex items-center gap-2 mx-auto shadow-lg">
+                        <i class="fas fa-filter-circle-xmark"></i>
+                        Ver todas las preguntas / Limpiar filtros
+                    </button>
                 </div>
             </div>
         </div>
@@ -118,16 +133,18 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 border-b border-slate-50 pb-8">
                 <div>
                     <h2 id="section-title" class="text-3xl md:text-4xl font-black text-slate-800">Preguntas Frecuentes</h2>
-                    <p class="text-slate-400 mt-2 font-medium flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span> Sincronización en tiempo real</p>
                 </div>
-                <button onclick="renderFAQs(faqData)" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo</button>
+                <button onclick="clearAllFilters()" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo</button>
             </div>
 
             <div id="faq-list" class="space-y-6"></div>
+            
+            <div id="pagination-container" class="mt-12 flex justify-center"></div>
+
             <div id="empty-search" class="hidden py-24 text-center">
                 <div class="text-8xl mb-6 grayscale">🕵️‍♂️</div>
                 <p class="text-2xl font-bold text-slate-800 mb-2">No encontramos coincidencias</p>
-                <button onclick="location.reload()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg mt-4">Reiniciar</button>
+                <button onclick="clearAllFilters()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg mt-4">Reiniciar búsqueda</button>
             </div>
         </div>
     </main>
@@ -471,17 +488,38 @@
         };
 
         // UI PUBLIC
-        window.renderFAQs = (data) => {
+        window.renderFAQs = () => {
             const list = document.getElementById('faq-list');
             const empty = document.getElementById('empty-search');
-            list.innerHTML = '';
+            const paginationContainer = document.getElementById('pagination-container');
             
-            if (data.length === 0) { empty.classList.remove('hidden'); return; }
+            // 1. FILTRADO COMBINADO (Categoría + Búsqueda)
+            let filtered = faqData.filter(faq => {
+                const matchesCat = currentCategory === 'all' || faq.category === currentCategory;
+                const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                     faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesCat && matchesSearch;
+            });
+        
+            // 2. LÓGICA DE PAGINACIÓN
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = 1; // Reset si los filtros reducen las páginas
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedItems = filtered.slice(startIndex, startIndex + itemsPerPage);
+        
+            // 3. RENDERIZADO DE PREGUNTAS
+            list.innerHTML = '';
+            if (filtered.length === 0) {
+                empty.classList.remove('hidden');
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                return;
+            }
             empty.classList.add('hidden');
-
-            data.forEach(faq => {
+        
+            paginatedItems.forEach(faq => {
                 const div = document.createElement('div');
-                div.className = "accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm";
+                div.className = "accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn";
                 div.innerHTML = `
                     <button class="w-full flex items-center justify-between p-6 text-left" onclick="this.parentElement.classList.toggle('active')">
                         <span class="font-bold flex items-center"><i class="fas fa-question-circle mr-3 text-cnciAzul"></i> ${faq.question}</span>
@@ -489,9 +527,11 @@
                     </button>
                     <div class="accordion-content">
                         <div class="p-8 border-t bg-slate-50/30">
-                            <p class="leading-relaxed text-slate-600">${faq.answer}</p>
+                            <p class="leading-relaxed text-slate-600">${faq.answer.replace(/\n/g, '<br>')}</p>
                             <div class="mt-6 flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-slate-400">${faq.category}</span>
+                                <span class="text-[10px] font-black uppercase text-slate-400">
+                                    ${catData.find(c => c.id === faq.category)?.name || faq.category}
+                                </span>
                                 <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:text-cnciNaranja transition-all">
                                     <i class="fas fa-heart"></i> <span>${faq.likes || 0}</span>
                                 </button>
@@ -501,16 +541,61 @@
                 `;
                 list.appendChild(div);
             });
+        
+            // 4. RENDERIZADO DE BOTONCILLOS DE PAGINACIÓN
+            renderPagination(totalPages);
+        };
+        
+        // Nueva función de apoyo para los botones
+        const renderPagination = (totalPages) => {
+            let pagDiv = document.getElementById('pagination-container');
+            if (!pagDiv) {
+                pagDiv = document.createElement('div');
+                pagDiv.id = 'pagination-container';
+                document.getElementById('faq-list').after(pagDiv);
+            }
+            
+            if (totalPages <= 1) {
+                pagDiv.innerHTML = '';
+                return;
+            }
+        
+            let html = `<div class="flex justify-center items-center gap-2 mt-8 mb-12">`;
+            for (let i = 1; i <= totalPages; i++) {
+                const isActive = i === currentPage;
+                html += `
+                    <button onclick="changePage(${i})" 
+                        class="w-10 h-10 rounded-xl border font-bold transition-all ${isActive ? 'bg-cnciAzul text-white border-cnciAzul shadow-lg' : 'bg-white text-slate-400 hover:border-cnciAzul hover:text-cnciAzul'}">
+                        ${i}
+                    </button>`;
+            }
+            html += `</div>`;
+            pagDiv.innerHTML = html;
+        };
+        
+        window.changePage = (num) => {
+            currentPage = num;
+            window.renderFAQs();
+            window.scrollTo({ top: document.getElementById('category-grid').offsetTop - 20, behavior: 'smooth' });
         };
 
         const renderCategoriesUI = () => {
             const grid = document.getElementById('category-grid');
+            if (!grid) return;
             grid.innerHTML = catData.map(cat => `
-                <div onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 rounded-[2rem] shadow-lg text-center border-b-4 ${cat.colorClass}">
+                <div onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 rounded-[2rem] shadow-lg text-center border-b-4 ${cat.colorClass} cursor-pointer">
                     <i class="${cat.iconClass} text-2xl mb-3 text-slate-600 block"></i>
                     <span class="font-bold text-slate-700">${cat.name}</span>
                 </div>
             `).join('');
+        };
+        window.filterByCat = (id) => {
+            currentCategory = id; 
+            currentPage = 1;      // Reiniciamos a la primera página
+            window.renderFAQs();  // Dibujamos con el nuevo filtro
+            
+            // Opcional: Desplazar suavemente hacia las preguntas
+            document.getElementById('faq-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         // ADMIN PROCESSING
@@ -724,12 +809,48 @@
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), { likes: increment(1) });
         };
 
+        // --- LÓGICA DE FILTRADO Y LIMPIEZA ---
+
+        window.clearAllFilters = () => {
+            searchTerm = '';
+            currentCategory = 'all';
+            currentPage = 1;
+            const input = document.getElementById('search-input');
+            if (input) input.value = '';
+            const title = document.getElementById('section-title');
+            if (title) title.innerText = 'Preguntas Frecuentes';
+            window.renderFAQs();
+        };
+
+        window.filterByCat = (catId) => {
+            currentCategory = catId;
+            currentPage = 1;
+            const title = document.getElementById('section-title');
+            const category = catData.find(c => c.id === catId);
+            if (title && category) title.innerText = category.name;
+            window.renderFAQs();
+        };
+
+        // --- ACCESO ADMINISTRADOR ---
+
         document.getElementById('admin-lock-btn').onclick = () => {
             if (prompt("Clave:") === "cnci2026") document.getElementById('admin-modal').classList.remove('hidden');
         };
         document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
 
+        // --- INICIALIZACIÓN ---
+
         init();
+
+        // Escuchar la barra de búsqueda
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchTerm = e.target.value; 
+                currentPage = 1;
+                window.renderFAQs();
+            });
+        }
     </script>
 </body>
 </html>
