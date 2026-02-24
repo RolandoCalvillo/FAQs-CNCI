@@ -609,21 +609,20 @@
             }
         };
         
-        // UI PUBLIC: Renderizado de preguntas con Multimedia y Áreas (Plan Maestro Completo)
+        // UI PUBLIC: Renderizado de preguntas con Multimedia y Áreas
         window.renderFAQs = () => {
             const list = document.getElementById('faq-list');
             const empty = document.getElementById('empty-search');
-            const paginationContainer = document.getElementById('pagination-container');
             
             if (!list) return;
-
+        
             let filtered = faqData.filter(faq => {
                 const matchesCat = currentCategory === 'all' || faq.categoryId === currentCategory;
                 if (searchTerm.trim().length < 3) return matchesCat;
-
+        
                 const normalize = (text) => 
                     (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
+        
                 const searchNormalized = normalize(searchTerm);
                 const questionNormalized = normalize(faq.question);
                 
@@ -631,30 +630,33 @@
                 tempDiv.innerHTML = faq.answer || "";
                 const cleanText = tempDiv.textContent || tempDiv.innerText || "";
                 const answerNormalized = normalize(cleanText);
-
+        
                 const words = searchNormalized.split(' ').filter(w => w.length > 0);
-                const matchesSearch = words.every(word => 
+                return matchesCat && words.every(word => 
                     questionNormalized.includes(word) || answerNormalized.includes(word)
                 );
-
-                return matchesCat && matchesSearch;
             });
-
+        
             filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-
+        
             const totalPages = Math.ceil(filtered.length / itemsPerPage);
             if (currentPage > totalPages) currentPage = 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedItems = filtered.slice(startIndex, startIndex + itemsPerPage);
-
+        
             list.innerHTML = '';
+        
+            // Manejo de estado vacío
             if (filtered.length === 0) {
                 if (empty) empty.classList.remove('hidden');
-                if (paginationContainer) paginationContainer.innerHTML = '';
+                // Buscamos el contenedor de paginación por si ya existe para limpiarlo
+                const pContainer = document.getElementById('pagination-container');
+                if (pContainer) pContainer.innerHTML = '';
                 return;
             }
+            
             if (empty) empty.classList.add('hidden');
-
+        
             paginatedItems.forEach((faq, index) => {
                 const isTop = (faq.likes > 0 && currentPage === 1 && index === 0);
                 const isActiveClass = (faq.id === openedFaqId) ? 'active' : '';
@@ -663,7 +665,7 @@
                 const areaName = area ? area.name : 'General';
                 const category = catData.find(c => c.id === faq.categoryId);
                 const catName = category ? category.name : 'Varios';
-
+        
                 let videoHTML = '';
                 if (faq.videoUrl) {
                     const videoId = faq.videoUrl.includes('v=') ? faq.videoUrl.split('v=')[1].split('&')[0] : faq.videoUrl.split('/').pop();
@@ -671,7 +673,7 @@
                         <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
                     </div>`;
                 }
-
+        
                 const div = document.createElement('div');
                 div.className = `accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn ${isActiveClass}`;
                 div.innerHTML = `
@@ -704,9 +706,8 @@
                 list.appendChild(div);
             });
                     
-            // 4. RENDERIZADO DE BOTONCILLOS DE PAGINACIÓN
             renderPagination(totalPages);
-            };
+        };
         
         // Nueva función de apoyo para los botones
         const renderPagination = (totalPages) => {
@@ -839,75 +840,93 @@
 
         // STATS
         const updateStatsCharts = () => {
-            // Chart Sections
-            const secCounts = {};
-            catData.forEach(c => secCounts[c.id] = 0);
-            faqData.forEach(f => { if(secCounts[f.category] !== undefined) secCounts[f.category]++; });
-
-            const ctx1 = document.getElementById('chart-sections').getContext('2d');
-            if (charts.sections) charts.sections.destroy();
-            charts.sections = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(secCounts).map(id => catData.find(c => c.id === id)?.name || id),
-                    datasets: [{
-                        label: 'Preguntas',
-                        data: Object.values(secCounts),
-                        backgroundColor: '#2a6aff',
-                        borderRadius: 8
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // Chart Likes
-            const topLikes = [...faqData].sort((a,b) => (b.likes||0) - (a.likes||0)).slice(0, 5);
-            const ctx2 = document.getElementById('chart-likes').getContext('2d');
-            if (charts.likes) charts.likes.destroy();
-            charts.likes = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: topLikes.map(f => f.question.substring(0, 15) + '...'),
-                    datasets: [{
-                        label: 'Votos útiles',
-                        data: topLikes.map(f => f.likes || 0),
-                        backgroundColor: '#ff8500',
-                        borderRadius: 8
-                    }]
-                },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
-            });
-        };
+        // 1. Validar que existan datos y elementos
+        const ctx1 = document.getElementById('chart-sections');
+        const ctx2 = document.getElementById('chart-likes');
+        if (!ctx1 || !ctx2 || faqData.length === 0) return;
+    
+        // 2. Conteos por Sección (Corregido f.category -> f.categoryId)
+        const secCounts = {};
+        catData.forEach(c => secCounts[c.id] = 0);
+        faqData.forEach(f => { 
+            if(f.categoryId && secCounts[f.categoryId] !== undefined) {
+                secCounts[f.categoryId]++; 
+            }
+        });
+    
+        // Gráfica de Barras: Preguntas por Sección
+        if (charts.sections) charts.sections.destroy();
+        charts.sections = new Chart(ctx1.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(secCounts).map(id => catData.find(c => c.id === id)?.name || id),
+                datasets: [{
+                    label: 'Cantidad de Preguntas',
+                    data: Object.values(secCounts),
+                    backgroundColor: '#2a6aff',
+                    borderRadius: 10
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    
+        // 3. Top Likes (Corregido para manejar nulos)
+        const topLikes = [...faqData]
+            .sort((a,b) => (b.likes || 0) - (a.likes || 0))
+            .slice(0, 5);
+    
+        // Gráfica Horizontal: Top 5 Preguntas con más Likes
+        if (charts.likes) charts.likes.destroy();
+        charts.likes = new Chart(ctx2.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: topLikes.map(f => f.question.substring(0, 25) + '...'),
+                datasets: [{
+                    label: 'Votos útiles (Likes)',
+                    data: topLikes.map(f => f.likes || 0),
+                    backgroundColor: '#ff8500',
+                    borderRadius: 10
+                }]
+            },
+            options: { 
+                indexAxis: 'y', 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    };
 
         // TABS & FORMS
+        
         window.switchAdminMainTab = (tab) => {
             // 1. Gestionar botones del sidebar
             document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
         
-            // 2. Ocultar todas las vistas y el contenedor de formularios
+            // 2. Ocultar todas las vistas y formularios
             document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
             document.getElementById('admin-form-container').classList.add('hidden');
         
             // 3. Mostrar la vista seleccionada
             document.getElementById(`view-${tab}`).classList.remove('hidden');
+        
+            // NUEVO: Si la pestaña es stats, redibujar gráficas
+            if (tab === 'stats') {
+                setTimeout(() => {
+                    updateStatsCharts();
+                }, 100); // Pequeño delay para asegurar que el contenedor sea visible
+            }
         };
+        
         window.formatDoc = (cmd, value = null) => {
             document.execCommand(cmd, false, value);
             document.getElementById('form-faq-answer-editor').focus();
-        };
-        window.openAreaForm = () => {
-            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
-            document.getElementById('admin-form-container').classList.remove('hidden');
-            document.getElementById('faq-form-block').classList.add('hidden');
-            document.getElementById('cat-form-block').classList.add('hidden');
-            document.getElementById('area-form-block').classList.remove('hidden');
-            
-            document.getElementById('area-form').reset();
-            document.getElementById('form-area-id').value = '';
-            document.getElementById('area-title-label').innerText = 'Nueva Área Universitaria';
-        };
-        
+        };        
         // Listener para el formulario de Áreas
             document.getElementById('area-form').onsubmit = async (e) => {
                 e.preventDefault();
