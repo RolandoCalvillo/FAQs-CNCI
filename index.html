@@ -182,6 +182,7 @@
                 <div class="w-full md:w-72 bg-slate-50 border-r p-6 space-y-2 overflow-y-auto">
                     <button onclick="switchAdminMainTab('faqs')" id="tab-faqs" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center active"><i class="fas fa-question-circle mr-3"></i> Preguntas</button>
                     <button onclick="switchAdminMainTab('categories')" id="tab-categories" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-th-large mr-3"></i> Secciones</button>
+                    <button onclick="switchAdminMainTab('areas')" id="tab-areas" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-building mr-3"></i> Áreas</button>
                     <button onclick="switchAdminMainTab('stats')" id="tab-stats" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-chart-bar mr-3"></i> Estadísticas</button>
                     <button onclick="switchAdminMainTab('data')" id="tab-data" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-file-import mr-3"></i> Datos (CSV)</button>
                 </div>
@@ -279,7 +280,27 @@
                             </div>
                         </div>
                     </div>
-
+                    <!-- VIEW: AREAS -->
+                    <div id="view-areas" class="admin-view hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xl font-bold">Gestión de Áreas Universitarias</h4>
+                            <button onclick="openAreaForm()" class="btn-naranja px-6 py-2.5 rounded-xl shadow-lg text-sm">
+                                <i class="fas fa-plus mr-2"></i> Nueva Área
+                            </button>
+                        </div>
+                        <div class="border rounded-3xl overflow-hidden shadow-sm">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
+                                    <tr>
+                                        <th class="p-5">Nombre del Área</th>
+                                        <th class="p-5 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-areas-body" class="divide-y divide-slate-100">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <!-- VIEW: DATA -->
                     <div id="view-data" class="admin-view hidden space-y-10">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -304,20 +325,43 @@
                             <form id="faq-form" class="space-y-6 max-w-2xl">
                                 <input type="hidden" id="form-faq-id">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="col-span-2">
-                                        <label class="text-xs font-bold uppercase text-slate-400">Sección</label>
+                                    <div>
+                                        <label class="text-xs font-bold uppercase text-slate-400">Sección (Categoría)</label>
                                         <select id="form-faq-category" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold uppercase text-slate-400">Área Universitaria</label>
+                                        <select id="form-faq-area" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></select>
                                     </div>
                                     <div class="col-span-2">
                                         <label class="text-xs font-bold uppercase text-slate-400">Pregunta</label>
                                         <input type="text" id="form-faq-question" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
                                     </div>
+                                    
                                     <div class="col-span-2">
-                                        <label class="text-xs font-bold uppercase text-slate-400">Respuesta</label>
-                                        <textarea id="form-faq-answer" required rows="4" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></textarea>
+                                        <label class="text-xs font-bold uppercase text-slate-400">Respuesta Enriquecida</label>
+                                        <div class="border rounded-2xl overflow-hidden bg-slate-50">
+                                            <div class="bg-white border-b p-2 flex flex-wrap gap-1" id="editor-toolbar">
+                                                <button type="button" onclick="formatDoc('bold')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Negrita"><i class="fas fa-bold"></i></button>
+                                                <button type="button" onclick="formatDoc('italic')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Cursiva"><i class="fas fa-italic"></i></button>
+                                                <button type="button" onclick="formatDoc('insertUnorderedList')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Lista"><i class="fas fa-list-ul"></i></button>
+                                                <button type="button" onclick="formatDoc('createLink')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Link"><i class="fas fa-link"></i></button>
+                                            </div>
+                                            <div id="form-faq-answer-editor" contenteditable="true" class="p-4 min-h-[150px] outline-none bg-transparent prose prose-sm max-w-none" onpaste="handlePaste(event)"></div>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-span-2 bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-300 space-y-4">
+                                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Recursos Multimedia (Opcional)</p>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <input type="url" id="form-faq-video" placeholder="ID o Link YouTube" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
+                                            <input type="url" id="form-faq-image" placeholder="Link Imagen" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
+                                            <input type="text" id="form-faq-btn-text" placeholder="Texto Botón" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
+                                            <input type="url" id="form-faq-btn-url" placeholder="Link Botón" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-xl">Guardar Pregunta</button>
+                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-xl font-bold mt-4">Guardar Cambios</button>
                             </form>
                         </div>
 
@@ -331,8 +375,18 @@
                                 <button type="submit" class="w-full btn-naranja py-4 rounded-2xl">Guardar Sección</button>
                             </form>
                         </div>
+                        <div id="area-form-block" class="hidden">
+                            <h4 class="text-2xl font-black mb-8" id="area-title-label">Nueva Área Universitaria</h4>
+                            <form id="area-form" class="space-y-6 max-w-md">
+                                <input type="hidden" id="form-area-id">
+                                <div>
+                                    <label class="text-xs font-bold uppercase text-slate-400">Nombre del Área</label>
+                                    <input type="text" id="form-area-name" placeholder="Ej: Cobranza" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
+                                </div>
+                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-lg font-bold">Guardar Área</button>
+                            </form>
+                        </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -359,6 +413,7 @@
 
         let faqData = [];
         let catData = [];
+        let areaData = []; // Almacenará las Áreas Universitarias
         let filteredFaqs = [];
         let faqSort = { field: 'question', order: 'asc' };
         let faqFilters = { question: '', category: '', likes: '' };
@@ -398,74 +453,90 @@
             document.body.removeChild(link);
         };
 
-        // --- LÓGICA DE IMPORTACIÓN ---
-        window.importDataFromCSV = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-        
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                
-                // Procesador robusto que respeta saltos de línea y comillas dentro de celdas
-                const parseCSV = (str) => {
-                    const arr = [];
-                    let quote = false;
-                    let col = '';
-                    let row = [];
-        
-                    for (let c = 0; c < str.length; c++) {
-                        let char = str[c], nextChar = str[c+1];
-                        // Maneja comillas dobles escapadas ("")
-                        if (char === '"' && quote && nextChar === '"') { col += char; c++; continue; }
-                        // Detecta inicio o fin de una celda con comillas
-                        if (char === '"') { quote = !quote; continue; }
-                        // Separador de columna fuera de comillas
-                        if (char === ',' && !quote) { row.push(col); col = ''; continue; }
-                        // Salto de línea fuera de comillas (fin de fila)
-                        if ((char === '\r' || char === '\n') && !quote) {
-                            if (col !== '' || row.length > 0) {
-                                row.push(col);
-                                arr.push(row);
+        // --- LÓGICA DE IMPORTACIÓN MAESTRA (Punto 5 del Plan) ---
+            window.importDataFromCSV = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+            
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    
+                    // Procesador robusto de CSV
+                    const parseCSV = (str) => {
+                        const rows = [];
+                        let quote = false, col = '', row = [];
+                        for (let c = 0; c < str.length; c++) {
+                            let char = str[c], next = str[c+1];
+                            if (char === '"' && quote && next === '"') { col += '"'; c++; continue; }
+                            if (char === '"') { quote = !quote; continue; }
+                            if (char === ',' && !quote) { row.push(col); col = ''; continue; }
+                            if (char === '\r' || char === '\n') {
+                                if (!quote) { 
+                                    if (row.length > 0 || col !== '') { row.push(col); rows.push(row); }
+                                    row = []; col = ''; 
+                                } else { col += '\n'; }
+                                continue;
                             }
-                            row = []; col = '';
-                            if (char === '\r' && nextChar === '\n') c++; // Salta \n si es \r\n
-                            continue;
+                            col += char;
                         }
-                        col += char;
-                    }
-                    if (row.length > 0 || col !== '') { row.push(col); arr.push(row); }
-                    return arr;
-                };
-        
-                const rows = parseCSV(text);
-                let count = 0;
-        
-                // Saltamos la fila 0 (encabezados: question, answer, category, likes)
-                for (let i = 1; i < rows.length; i++) {
-                    const values = rows[i];
-                    // Validamos que la fila tenga datos mínimos
-                    if (values.length >= 3 && values[0].trim() !== "") {
-                        try {
-                            const data = {
-                                question: values[0].trim(),
-                                answer: values[1].trim(),
-                                category: values[2].trim(),
-                                likes: parseInt(values[3]) || 0
-                            };
-        
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
+                        if (row.length > 0 || col !== '') { row.push(col); rows.push(row); }
+                        return rows;
+                    };
+    
+                    const data = parseCSV(text);
+                    const header = data[0]; // Pregunta, Respuesta, Categoría, Área, Video, Imagen, BtnTxt, BtnUrl
+                    const rows = data.slice(1);
+                    let count = 0;
+    
+                    for (let r of rows) {
+                        if (r.length < 2) continue; // Saltar líneas vacías
+                        
+                        const [question, answer, catName, areaName, vUrl, iUrl, bTxt, bUrl] = r.map(i => i?.trim());
+    
+                        if (question && answer) {
+                            // 1. Identificar Categoría (ID amigable)
+                            const categoryId = catName ? catName.toLowerCase().replace(/\s/g, '-') : 'general';
+                            
+                            // 2. Lógica de AUTO-CREACIÓN de Áreas (Punto 1.2 del Plan)
+                            let areaId = "";
+                            if (areaName) {
+                                // Buscamos si el área ya existe (sin importar mayúsculas)
+                                const existingArea = areaData.find(a => a.name.toLowerCase() === areaName.toLowerCase());
+                                if (existingArea) {
+                                    areaId = existingArea.id;
+                                } else {
+                                    // Si no existe, la creamos en milisegundos
+                                    const newAreaRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), { 
+                                        name: areaName 
+                                    });
+                                    areaId = newAreaRef.id;
+                                    // Actualizamos nuestra lista local temporalmente para no duplicar en el mismo ciclo
+                                    areaData.push({ id: areaId, name: areaName });
+                                }
+                            }
+    
+                            // 3. Guardar FAQ con toda la multimedia (Punto 3 del Plan)
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), {
+                                question: question,
+                                answer: answer, // El editor ya lo recibirá como HTML
+                                categoryId: categoryId,
+                                areaId: areaId,
+                                videoUrl: vUrl || "",
+                                imageUrl: iUrl || "",
+                                btnText: bTxt || "",
+                                btnUrl: bUrl || "",
+                                likes: 0,
+                                updatedAt: new Date()
+                            });
                             count++;
-                        } catch (err) {
-                            console.error("Error procesando fila " + i + ":", err);
                         }
                     }
-                }
-                alert(`¡Importación Exitosa! Se añadieron ${count} preguntas correctamente.`);
-                event.target.value = ''; 
+                    alert(`¡Éxito! Se importaron ${count} preguntas. El sistema vinculó automáticamente las Áreas y Multimedia.`);
+                    location.reload();
+                };
+                reader.readAsText(file, 'UTF-8');
             };
-            reader.readAsText(file, 'UTF-8');
-        };
         // INIT
         const init = async () => {
             await signInAnonymously(auth);
@@ -487,6 +558,36 @@
                 renderFAQs(faqData);
                 if (charts.likes) updateStatsCharts();
             });
+            // Escuchar Áreas Universitarias en tiempo real
+            // --- ESCUCHAR ÁREAS Y ACTUALIZAR TABLA/SELECTOR ---
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), (snapshot) => {
+                const areasList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // 1. Actualizar la tabla de administración de Áreas
+                const areasBody = document.getElementById('admin-areas-body');
+                if (areasBody) {
+                    areasBody.innerHTML = areasList.map(area => `
+                        <tr>
+                            <td class="p-5 font-medium">${area.name}</td>
+                            <td class="p-5 text-right space-x-2">
+                                <button onclick="editArea('${area.id}', '${area.name}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteAreaSafe('${area.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // 2. Actualizar el selector "Área Universitaria" en el formulario de FAQs
+                const areaSelect = document.getElementById('form-faq-area');
+                if (areaSelect) {
+                    areaSelect.innerHTML = '<option value="">Seleccionar Área...</option>' + 
+                        areasList.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+                }
+            });
         };
 
         // --- NUEVO: Control de apertura ---
@@ -507,99 +608,102 @@
                 openedFaqId = null; // Limpiamos si se cerró manualmente
             }
         };
-        // UI PUBLIC
+        
+        // UI PUBLIC: Renderizado de preguntas con Multimedia y Áreas (Plan Maestro Completo)
         window.renderFAQs = () => {
             const list = document.getElementById('faq-list');
             const empty = document.getElementById('empty-search');
             const paginationContainer = document.getElementById('pagination-container');
             
-            // 1. FILTRADO COMBINADO MEJORADO
+            if (!list) return;
+
             let filtered = faqData.filter(faq => {
-                const matchesCat = currentCategory === 'all' || faq.category === currentCategory;
-                
-                // Si la búsqueda es muy corta (1 o 2 letras), no filtramos por texto (opcional)
+                const matchesCat = currentCategory === 'all' || faq.categoryId === currentCategory;
                 if (searchTerm.trim().length < 3) return matchesCat;
-            
-                // Función interna para quitar acentos y pasar a minúsculas
+
                 const normalize = (text) => 
-                    text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            
+                    (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
                 const searchNormalized = normalize(searchTerm);
                 const questionNormalized = normalize(faq.question);
-                const answerNormalized = normalize(faq.answer);
-            
-                // Dividimos la búsqueda en palabras sueltas
-                const words = searchNormalized.split(' ').filter(w => w.length > 0);
                 
-                // Verificamos que TODAS las palabras estén presentes
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = faq.answer || "";
+                const cleanText = tempDiv.textContent || tempDiv.innerText || "";
+                const answerNormalized = normalize(cleanText);
+
+                const words = searchNormalized.split(' ').filter(w => w.length > 0);
                 const matchesSearch = words.every(word => 
-                    questionNormalized.includes(word) || 
-                    answerNormalized.includes(word)
+                    questionNormalized.includes(word) || answerNormalized.includes(word)
                 );
-            
+
                 return matchesCat && matchesSearch;
             });
-            
-            // ORDENAMIENTO POR LIKES (De mayor a menor)
+
             filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-            // ------------------------------
-            // 2. LÓGICA DE PAGINACIÓN
+
             const totalPages = Math.ceil(filtered.length / itemsPerPage);
-            if (currentPage > totalPages) currentPage = 1; // Reset si los filtros reducen las páginas
-            
+            if (currentPage > totalPages) currentPage = 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedItems = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-            // 3. RENDERIZADO DE PREGUNTAS
             list.innerHTML = '';
             if (filtered.length === 0) {
-                empty.classList.remove('hidden');
+                if (empty) empty.classList.remove('hidden');
                 if (paginationContainer) paginationContainer.innerHTML = '';
                 return;
             }
-            empty.classList.add('hidden');
-        
+            if (empty) empty.classList.add('hidden');
+
             paginatedItems.forEach((faq, index) => {
                 const isTop = (faq.likes > 0 && currentPage === 1 && index === 0);
-                
-                // Si el ID coincide con el que guardamos, le ponemos la clase active
                 const isActiveClass = (faq.id === openedFaqId) ? 'active' : '';
                 
+                const area = areaData.find(a => a.id === faq.areaId);
+                const areaName = area ? area.name : 'General';
+                const category = catData.find(c => c.id === faq.categoryId);
+                const catName = category ? category.name : 'Varios';
+
+                let videoHTML = '';
+                if (faq.videoUrl) {
+                    const videoId = faq.videoUrl.includes('v=') ? faq.videoUrl.split('v=')[1].split('&')[0] : faq.videoUrl.split('/').pop();
+                    videoHTML = `<div class="mb-6 rounded-2xl overflow-hidden shadow-lg bg-black aspect-video">
+                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+                    </div>`;
+                }
+
                 const div = document.createElement('div');
-                // IMPORTANTE: Incluir ${isActiveClass} aquí
                 div.className = `accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn ${isActiveClass}`;
                 div.innerHTML = `
-                    <button class="w-full flex items-center justify-between p-6 text-left" 
-                            onclick="toggleFaq('${faq.id}', this)">
-                        <span class="font-bold flex items-center">
+                    <button class="w-full flex items-center justify-between p-6 text-left" onclick="toggleFaq('${faq.id}', this)">
+                        <span class="font-bold flex items-center pr-4">
                             <i class="fas fa-question-circle mr-3 text-cnciAzul"></i> 
                             ${faq.question}
-                            ${isTop ? `
-                                <span class="ml-3 text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-lg flex items-center gap-1 animate-pulse border border-orange-200">
-                                    <i class="fas fa-fire"></i> DESTACADA
-                                </span>
-                            ` : ''}
+                            ${isTop ? `<span class="ml-3 text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-lg flex items-center gap-1 border border-orange-200"><i class="fas fa-fire"></i> TOP</span>` : ''}
                         </span>
                         <i class="fas fa-chevron-down text-slate-300 chevron transition-all"></i>
                     </button>
                     <div class="accordion-content">
                         <div class="p-8 border-t bg-slate-50/30">
-                            <p class="leading-relaxed text-slate-600">${faq.answer.replace(/\n/g, '<br>')}</p>
-                            <div class="mt-6 flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-slate-400">
-                                    ${catData.find(c => c.id === faq.category)?.name || faq.category}
-                                </span>
-                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:text-cnciNaranja transition-all shadow-sm">
-                                    <i class="fas fa-heart ${faq.likes > 0 ? 'text-red-500' : ''}"></i> 
+                            <div class="prose prose-sm max-w-none text-slate-600 mb-6">${faq.answer}</div>
+                            ${videoHTML}
+                            ${faq.imageUrl ? `<div class="mb-6"><img src="${faq.imageUrl}" class="rounded-2xl w-full object-cover shadow-md"></div>` : ''}
+                            ${faq.btnUrl ? `<div class="mb-6"><a href="${faq.btnUrl}" target="_blank" class="inline-block bg-slate-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm">${faq.btnText || 'Ver más'}</a></div>` : ''}
+                            <div class="mt-6 pt-6 border-t flex justify-between items-center">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black uppercase text-slate-400">Área Universitaria: ${areaName}</span>
+                                    <span class="text-[9px] font-bold text-cnciAzul uppercase">${catName}</span>
+                                </div>
+                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:scale-105 transition-all shadow-sm">
+                                    <i class="fas fa-heart ${faq.likes > 0 ? 'text-red-500' : 'text-slate-300'}"></i> 
                                     <span class="font-bold text-sm">${faq.likes || 0}</span>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 list.appendChild(div);
             });
-        
+                    
             // 4. RENDERIZADO DE BOTONCILLOS DE PAGINACIÓN
             renderPagination(totalPages);
             };
@@ -777,12 +881,71 @@
 
         // TABS & FORMS
         window.switchAdminMainTab = (tab) => {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            // 1. Gestionar botones del sidebar
+            document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
+        
+            // 2. Ocultar todas las vistas y el contenedor de formularios
             document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('admin-form-container').classList.add('hidden');
+        
+            // 3. Mostrar la vista seleccionada
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            if (tab === 'stats') setTimeout(updateStatsCharts, 100);
-            closeAdminForm();
+        };
+        window.formatDoc = (cmd, value = null) => {
+            document.execCommand(cmd, false, value);
+            document.getElementById('form-faq-answer-editor').focus();
+        };
+        window.openAreaForm = () => {
+            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('admin-form-container').classList.remove('hidden');
+            document.getElementById('faq-form-block').classList.add('hidden');
+            document.getElementById('cat-form-block').classList.add('hidden');
+            document.getElementById('area-form-block').classList.remove('hidden');
+            
+            document.getElementById('area-form').reset();
+            document.getElementById('form-area-id').value = '';
+            document.getElementById('area-title-label').innerText = 'Nueva Área Universitaria';
+        };
+        
+        // Listener para el formulario de Áreas
+            document.getElementById('area-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('form-area-id').value;
+                const areaData = {
+                    name: document.getElementById('form-area-name').value
+                };
+            
+                try {
+                    if (id) {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'areas', id), areaData);
+                    } else {
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), areaData);
+                    }
+                    alert("Área guardada con éxito");
+                    switchAdminMainTab('areas');
+                } catch (error) {
+                    console.error("Error al guardar área:", error);
+                }
+            };
+        window.openAreaForm = () => {
+            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('admin-form-container').classList.remove('hidden');
+            document.getElementById('faq-form-block').classList.add('hidden');
+            document.getElementById('cat-form-block').classList.add('hidden');
+            document.getElementById('area-form-block').classList.remove('hidden');
+            
+            document.getElementById('area-form').reset();
+            document.getElementById('form-area-id').value = '';
+            document.getElementById('area-title-label').innerText = 'Nueva Área Universitaria';
+        };
+        
+                            
+        // Limpia el texto pegado para evitar que traiga estilos raros de Word o webs
+        window.handlePaste = (e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
         };
 
         window.openFaqForm = () => {
@@ -813,20 +976,39 @@
             const activeTab = document.querySelector('.admin-tab.active').id.replace('tab-', '');
             document.getElementById(`view-${activeTab}`).classList.remove('hidden');
         };
-
-        // CRUD
+        // CRUD: Guardado de Preguntas (Actualizado con Multimedia y Editor)
         document.getElementById('faq-form').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('form-faq-id').value;
+            
+            // Recopilamos todos los nuevos campos
             const data = {
                 question: document.getElementById('form-faq-question').value,
-                answer: document.getElementById('form-faq-answer').value,
-                category: document.getElementById('form-faq-category').value,
-                likes: id ? faqData.find(f => f.id === id).likes || 0 : 0
+                // Usamos innerHTML para guardar las negritas y links del editor
+                answer: document.getElementById('form-faq-answer-editor').innerHTML, 
+                categoryId: document.getElementById('form-faq-category').value,
+                areaId: document.getElementById('form-faq-area').value,
+                videoUrl: document.getElementById('form-faq-video').value,
+                imageUrl: document.getElementById('form-faq-image').value,
+                btnText: document.getElementById('form-faq-btn-text').value,
+                btnUrl: document.getElementById('form-faq-btn-url').value,
+                likes: id ? (faqData.find(f => f.id === id)?.likes || 0) : 0,
+                updatedAt: new Date()
             };
-            if (id) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), data);
-            else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
-            closeAdminForm();
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), data);
+                } else {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
+                }
+                alert("Pregunta guardada correctamente");
+                closeAdminForm();
+                location.reload(); // Recargamos para que se vean los cambios multimedia
+            } catch (error) {
+                console.error("Error al guardar FAQ:", error);
+                alert("Hubo un error al guardar");
+            }
         };
 
         document.getElementById('cat-form').onsubmit = async (e) => {
@@ -932,6 +1114,24 @@
                 window.renderFAQs();
             });
         }
+        // FUNCIÓN DE SEGURIDAD: Borrado de áreas (Punto 1.3 del Plan)
+        window.deleteAreaSafe = async (id) => {
+            // Verificamos si existe alguna FAQ que use este areaId
+            const hasFaqs = faqData.some(f => f.areaId === id);
+            
+            if (hasFaqs) {
+                alert("❌ SEGURIDAD: No puedes eliminar esta área porque tiene preguntas vinculadas. Reasigna las preguntas a otra área antes de borrarla.");
+            } else {
+                if (confirm("¿Estás seguro de eliminar esta área? Esta acción no se puede deshacer.")) {
+                    try {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'areas', id));
+                        alert("Área eliminada correctamente.");
+                    } catch (error) {
+                        console.error("Error al eliminar:", error);
+                    }
+                }
+            }
+        };
     </script>
 </body>
 </html>
