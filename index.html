@@ -1,401 +1,357 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Ayuda - Universidad CNCI</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico?v=1">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=1">
-    <link rel="apple-touch-icon" href="favicon.ico?v=1">
+    <title>Centro de Ayuda CNCI | Premium</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Fuentes y Estilos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        window.tailwind.config = {
+        tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        cnciAzul: '#2a6aff',
-                        cnciNaranja: '#ff8500',
-                    }
+                        cnciBlue: '#2563eb',
+                        cnciDark: '#1e40af',
+                        cnciNavy: '#004aad',
+                        accent: '#ff8500',
+                        bgSoft: '#f8fafc'
+                    },
+                    borderRadius: { '3xl': '1.5rem' },
+                    boxShadow: { 'premium': '0 20px 50px -12px rgba(0,74,173,0.12)' }
                 }
             }
         }
     </script>
-    <script>
-        // VARIABLES DE ESTADO GLOBAL (Para filtros y paginación)
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let currentCategory = 'all';
-        let searchTerm = '';
-        let openedFaqId = null; // Guardará el ID de la pregunta que esté abierta
-    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f7fe; overflow-x: hidden; }
-        .gradient-bg { background: linear-gradient(135deg, #2a6aff 0%, #1a49b8 100%); }
-        .category-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-        .category-card:hover { transform: translateY(-8px); border-color: #ff8500; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
-        .accordion-item.active .accordion-content { max-height: 1500px; }
-        .accordion-item.active .chevron { transform: rotate(180deg); color: #ff8500; }
-        .btn-naranja { background-color: #ff8500; transition: all 0.3s; color: white; font-weight: 600; }
-        .btn-naranja:hover { background-color: #e67700; transform: scale(1.02); }
-        .admin-tab.active { background-color: #2a6aff; color: white; box-shadow: 0 4px 12px rgba(42, 106, 255, 0.3); }
-        .sort-btn { cursor: pointer; transition: color 0.2s; }
-        .sort-btn:hover { color: #2a6aff; }
-        .filter-input { border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; font-size: 12px; width: 100%; outline: none; font-weight: normal; margin-top: 4px; }
-        .filter-input:focus { border-color: #2a6aff; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        
+        .faq-content { height: auto; overflow: visible; }
+        .faq-content img { max-width: 100%; height: auto; border-radius: 1rem; margin: 1rem 0; }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #004aad 0%, #002d69 100%);
+            padding-bottom: 120px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .hidden-view { display: none !important; }
+
+        .tag-pill {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        #mobile-menu { transition: transform 0.3s ease-in-out; }
+        #mobile-menu.closed { transform: translateY(-120%); }
+
+        .filters-container {
+            position: relative;
+            z-index: 20;
+            margin-top: -60px;
+        }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Status Toast -->
-    <div id="status-toast" class="fixed top-4 right-4 z-[100] hidden animate__animated animate__fadeInRight">
-        <div class="px-6 py-3 rounded-xl shadow-lg flex items-center">
-            <i class="fas fa-info-circle mr-3"></i>
-            <span id="status-msg"></span>
-        </div>
-    </div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
 
-    <!-- Navbar -->
-    <nav class="bg-white py-4 px-6 shadow-md sticky top-0 z-50 border-b border-slate-100" aria-label="Navegación principal">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <a href="/" class="flex items-center">
-            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="CNCI Logo" class="h-10 md:h-12 hover:opacity-90 transition-opacity">
-        </a>
+    <nav class="bg-white sticky top-0 z-50 border-b border-slate-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onclick="location.reload()">
+                <img class="h-8 sm:h-10 w-auto" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png" alt="Logo CNCI">
+                <span class="ml-3 text-lg font-bold text-slate-800 hidden lg:block tracking-tight">Centro de Ayuda</span>
+            </div>
 
-        <div class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
-            <a href="https://www.office.com/" 
-               target="_blank" 
-               class="hover:text-blue-700 transition-colors duration-300">
-               Office 365
-            </a>
-            
-            <a href="https://cnci.unlimitedlearning.io/" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               class="hover:text-blue-700 transition-colors duration-300">
-               Biblioteca
-            </a>
+            <div class="hidden md:flex items-center space-x-6 lg:space-x-8 text-sm font-semibold text-slate-600">
+                <a href="https://www.office.com/" target="_blank" class="hover:text-blue-700 transition-colors">Office 365</a>
+                <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="hover:text-blue-700 transition-colors">Biblioteca</a>
+                <a href="https://cnci.blackboard.com/ultra/" target="_blank" 
+                   class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+                    Blackboard
+                </a>
+                <div id="admin-logged-info" class="hidden flex items-center gap-3 border-l pl-6 ml-2">
+                    <span class="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-1 rounded">STAFF</span>
+                    <button onclick="window.logoutAdmin()" class="text-red-500 hover:underline">Salir</button>
+                </div>
+            </div>
 
-            <a href="https://cnci.blackboard.com/ultra/" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
-               Blackboard
-            </a>
-        </div>
-
-        <div class="md:hidden">
-            <button class="text-slate-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
+            <button onclick="window.toggleMobileMenu()" class="md:hidden text-slate-600 p-2">
+                <i class="fa-solid fa-bars-staggered text-2xl"></i>
             </button>
         </div>
-    </div>
-</nav>
 
-    <!-- Header -->
-    <header class="gradient-bg text-white pb-32 pt-20 px-4 relative overflow-hidden">
-        <div class="max-w-4xl mx-auto text-center animate__animated animate__fadeInDown">
-            <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Centro de Ayuda CNCI 🎓</h1>
-            <p class="text-blue-100 mb-10 text-lg md:text-xl opacity-90 max-w-2xl mx-auto">Encuentra respuestas inmediatas sobre tu proceso académico.</p>
-            
-            <div class="relative max-w-2xl mx-auto group">
-                <input type="text" id="search-input" placeholder="¿Cómo ingreso a Blackboard?..." 
-                       class="w-full py-6 px-8 rounded-3xl text-slate-800 shadow-2xl focus:ring-4 focus:ring-cnciNaranja/30 outline-none transition-all text-lg pr-16">
-                <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center">
-                    <i class="fas fa-search text-white"></i>
-                </div>
-
-                <div class="mt-6 text-center">
-                    <button onclick="clearAllFilters()" class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-cnciNaranja hover:border-cnciNaranja transition-all duration-300 flex items-center gap-2 mx-auto shadow-lg">
-                        <i class="fas fa-filter-circle-xmark"></i>
-                        Ver todas las preguntas / Limpiar filtros
-                    </button>
-                </div>
-            </div>
+        <div id="mobile-menu" class="fixed inset-x-0 top-20 bg-white border-b shadow-xl p-6 flex flex-col gap-4 md:hidden closed z-40">
+            <a href="https://www.office.com/" target="_blank" class="py-3 border-b font-semibold text-slate-600">Office 365</a>
+            <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="py-3 border-b font-semibold text-slate-600">Biblioteca</a>
+            <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="py-4 bg-blue-600 text-white text-center rounded-xl font-bold">Ir a Blackboard</a>
         </div>
-    </header>
+    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-6xl mx-auto px-4 -mt-20 mb-24 relative z-10">
-        <div id="category-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16"></div>
-
-        <div class="bg-white rounded-[3rem] shadow-2xl border border-white p-8 md:p-14">
-            <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 border-b border-slate-50 pb-8">
-                <div>
-                    <h2 id="section-title" class="text-3xl md:text-4xl font-black text-slate-800">Preguntas Frecuentes</h2>
+    <main id="view-client" class="flex-grow animate__animated animate__fadeIn">
+        <section class="hero-gradient text-white py-16 md:py-24 px-6 relative overflow-hidden">
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+                <h1 class="text-3xl md:text-5xl font-extrabold mb-4 animate__animated animate__fadeInDown">
+                    ¿Cómo podemos ayudarte?
+                </h1>
+                <p class="text-blue-100 text-base md:text-lg mb-10 opacity-90 font-light px-4">
+                    Busca tutoriales, procesos de titulación, becas y más.
+                </p>
+                
+                <div class="max-w-2xl mx-auto relative group px-2">
+                    <i class="fa-solid fa-search absolute left-8 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                    <input type="text" id="search-input" oninput="window.handleSearch(event)" 
+                        placeholder="Escribe tu pregunta aquí..." 
+                        class="w-full pl-14 pr-6 py-5 rounded-2xl border-0 shadow-2xl focus:ring-4 focus:ring-blue-400/30 outline-none text-gray-800 text-base transition-all">
                 </div>
-                <button onclick="clearAllFilters()" class="text-sm font-bold text-cnciAzul hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">Ver todo</button>
+            </div>
+        </section>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 filters-container pb-24">
+            <div class="flex overflow-x-auto no-scrollbar gap-3 mb-10 pb-4 justify-start md:justify-center" id="categories-container"></div>
+            <div id="faqs-container" class="space-y-4 md:space-y-6"></div>
+        </div>
+    </main>
+
+    <!-- Vista Admin -->
+    <main id="view-admin" class="flex-grow bg-slate-50 hidden-view pb-24 animate__animated animate__fadeIn">
+        <div class="max-w-7xl mx-auto px-4 py-10">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Panel de Control</h2>
+                    <p class="text-slate-500 text-sm">Administra el conocimiento institucional</p>
+                </div>
+                <div class="flex bg-white p-1 rounded-2xl shadow-sm border w-full lg:w-auto overflow-x-auto">
+                    <button onclick="window.switchAdminTab('dashboard')" id="tab-btn-dashboard" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Dashboard</button>
+                    <button onclick="window.switchAdminTab('metrics')" id="tab-btn-metrics" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Métricas</button>
+                    <button onclick="window.switchAdminTab('faqs')" id="tab-btn-faqs" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">FAQs</button>
+                    <button onclick="window.switchAdminTab('categories')" id="tab-btn-categories" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Estructura</button>
+                </div>
             </div>
 
-            <div id="faq-list" class="space-y-6"></div>
-            
-            <div id="pagination-container" class="mt-12 flex justify-center"></div>
+            <!-- Tab Dashboard -->
+            <div id="admin-tab-dashboard">
+                <!-- Filtros Dashboard -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border mb-8 flex flex-wrap gap-4 items-end">
+                    <div class="flex-1 min-w-[200px] space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Categoría</label>
+                        <select id="dash-filter-cat" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                    <div class="flex-1 min-w-[200px] space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Área</label>
+                        <select id="dash-filter-area" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                    <div class="flex-1 min-w-[150px] space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Desde</label>
+                        <input type="date" id="dash-filter-start" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex-1 min-w-[150px] space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Hasta</label>
+                        <input type="date" id="dash-filter-end" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button onclick="window.resetDashFilters()" class="px-4 py-2.5 text-blue-600 font-bold text-xs">Reset</button>
+                </div>
 
-            <div id="empty-search" class="hidden py-24 text-center">
-                <div class="text-8xl mb-6 grayscale">🕵️‍♂️</div>
-                <p class="text-2xl font-bold text-slate-800 mb-2">No encontramos coincidencias</p>
-                <button onclick="clearAllFilters()" class="btn-naranja px-8 py-3 rounded-2xl shadow-lg mt-4">Reiniciar búsqueda</button>
+                <div class="grid grid-cols-1 gap-8">
+                    <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 min-h-[450px]">
+                        <h3 class="font-bold text-slate-700 mb-8 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-eye text-blue-500"></i> Top 10 FAQs más consultadas (Aperturas)
+                        </h3>
+                        <div class="h-[400px]">
+                            <canvas id="chartTopClicks"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 min-h-[450px]">
+                        <h3 class="font-bold text-slate-700 mb-8 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-thumbs-up text-orange-500"></i> Top 10 FAQs con mejor valoración (Likes)
+                        </h3>
+                        <div class="h-[400px]">
+                            <canvas id="chartTopLikes"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Métricas -->
+            <div id="admin-tab-metrics" class="hidden-view">
+                <div class="bg-white rounded-3xl shadow-premium border overflow-hidden">
+                    <div class="p-6 border-b flex flex-col md:flex-row justify-between items-center bg-slate-50/50 gap-4">
+                        <span class="font-bold text-slate-700">Bitácora de Accesos Globales</span>
+                        <div class="relative w-full md:w-80">
+                            <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="metric-table-search" oninput="window.renderMetricsTable()" 
+                                placeholder="Filtrar por ciudad, estado o IP..." 
+                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-white outline-none text-xs focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black">
+                                <tr>
+                                    <th class="px-6 py-4">Fecha/Hora</th>
+                                    <th class="px-6 py-4">Ciudad/Estado</th>
+                                    <th class="px-6 py-4">País</th>
+                                    <th class="px-6 py-4">Dirección IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-metrics-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab FAQs -->
+            <div id="admin-tab-faqs" class="hidden-view">
+                <div class="bg-white rounded-3xl shadow-premium border overflow-hidden">
+                    <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
+                        <span class="font-bold text-slate-700">Listado de Respuestas</span>
+                        <button onclick="window.openFaqModal()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Nueva FAQ
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black">
+                                <tr>
+                                    <th class="px-6 py-4">Pregunta</th>
+                                    <th class="px-6 py-4 text-center">Likes</th>
+                                    <th class="px-6 py-4 text-center">Abrir (clics)</th>
+                                    <th class="px-6 py-4 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-faqs-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Estructura -->
+            <div id="admin-tab-categories" class="hidden-view grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-premium border">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-700 text-sm">Categorías</h3>
+                        <button onclick="window.openSimpleModal('category')" class="text-blue-600"><i class="fa-solid fa-plus-circle"></i></button>
+                    </div>
+                    <ul id="admin-categories-list" class="divide-y text-sm"></ul>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-premium border">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-700 text-sm">Áreas Académicas</h3>
+                        <button onclick="window.openSimpleModal('area')" class="text-blue-600"><i class="fa-solid fa-plus-circle"></i></button>
+                    </div>
+                    <ul id="admin-areas-list" class="divide-y text-sm"></ul>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- Admin Button -->
-    <footer class="bg-slate-900 text-slate-500 py-16 px-6">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <img src="https://i.postimg.cc/KzxV7m0Z/CNCI-VIRTUAL-LOGO.jpg" alt="Logo" class="h-10 grayscale brightness-200">
-            <button id="admin-lock-btn" class="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all">
-                <i class="fas fa-user-shield text-slate-600 hover:text-cnciNaranja"></i>
+    <footer class="bg-white border-t py-10 px-6 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <img class="h-6 opacity-30 mx-auto md:mx-0 grayscale" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png">
+                <p class="text-slate-400 text-[10px] mt-3 uppercase tracking-tighter">© 2024 Universidad Virtual CNCI. Todos los derechos reservados.</p>
+            </div>
+            <button id="nav-admin-btn" onclick="window.showLoginModal()" class="text-slate-300 text-[10px] font-black uppercase hover:text-blue-600 transition-colors">
+                🔐 Acceso restringido
             </button>
         </div>
     </footer>
 
-    <!-- ADMIN MODAL -->
-    <div id="admin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white w-full max-w-7xl rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            
-            <div class="p-8 border-b bg-slate-50 flex justify-between items-center">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-cnciAzul rounded-2xl flex items-center justify-center text-white mr-4 shadow-lg">
-                        <i class="fas fa-tools text-xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-slate-800">Panel Administrativo</h3>
+    <!-- Modales -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center items-center hidden-view p-4">
+        <div class="bg-white rounded-3xl p-8 max-sm w-full shadow-2xl animate__animated animate__zoomIn">
+            <h3 class="text-xl font-bold text-slate-800 text-center mb-6">Personal CNCI</h3>
+            <form onsubmit="window.handleLogin(event)" class="space-y-4">
+                <input type="email" id="login-email" placeholder="Correo institucional" required class="w-full px-5 py-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="login-password" placeholder="Contraseña" required class="w-full px-5 py-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Ingresar</button>
+                <button type="button" onclick="window.closeModal('modal-login')" class="w-full text-slate-400 text-xs font-medium">Volver</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-faq" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex justify-center items-center hidden-view p-2 sm:p-4">
+        <div class="bg-white rounded-[2rem] p-6 sm:p-10 max-w-3xl w-full max-h-[95vh] overflow-y-auto shadow-2xl animate__animated animate__fadeInUp">
+            <h3 id="modal-faq-title" class="text-2xl font-bold text-slate-800 mb-6">Gestionar Respuesta</h3>
+            <form onsubmit="window.saveFaq(event)" class="space-y-5">
+                <input type="hidden" id="faq-id">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Pregunta al Estudiante</label>
+                    <input type="text" id="faq-question" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-600">
                 </div>
-                <button id="close-admin-btn" class="text-slate-400 hover:text-red-500 transition-all text-2xl">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
-                <!-- Sidebar -->
-                <div class="w-full md:w-72 bg-slate-50 border-r p-6 space-y-2 overflow-y-auto">
-                    <button onclick="switchAdminMainTab('faqs')" id="tab-faqs" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center active"><i class="fas fa-question-circle mr-3"></i> Preguntas</button>
-                    <button onclick="switchAdminMainTab('categories')" id="tab-categories" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-th-large mr-3"></i> Secciones</button>
-                    <button onclick="switchAdminMainTab('areas')" id="tab-areas" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-building mr-3"></i> Áreas</button>
-                    <button onclick="switchAdminMainTab('stats')" id="tab-stats" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-chart-bar mr-3"></i> Estadísticas</button>
-                    <button onclick="switchAdminMainTab('data')" id="tab-data" class="admin-tab w-full text-left px-5 py-3 rounded-2xl font-bold flex items-center"><i class="fas fa-file-import mr-3"></i> Datos (CSV)</button>
-                </div>
-
-                <!-- Admin Content Area -->
-                <div class="flex-grow p-8 overflow-y-auto bg-white">
-                    
-                    <!-- VIEW: FAQS -->
-                    <div id="view-faqs" class="admin-view space-y-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-xl font-bold">Gestión de Preguntas</h4>
-                            <button onclick="openFaqForm()" class="bg-cnciAzul text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md hover:scale-105 transition-transform">
-                                <i class="fas fa-plus mr-2"></i> Añadir Pregunta Individual
-                            </button>
-                        </div>
-                        <div class="border rounded-3xl overflow-x-auto shadow-sm">
-                            <table class="w-full text-left text-sm min-w-[700px]">
-                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
-                                    <tr>
-                                        <th class="p-5">
-                                            <div class="flex flex-col">
-                                                <div class="flex items-center justify-between">
-                                                    <span>Pregunta</span>
-                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('question')"></i>
-                                                </div>
-                                                <input type="text" placeholder="Filtrar..." class="filter-input" oninput="applyFaqFilters('question', this.value)">
-                                            </div>
-                                        </th>
-                                        <th class="p-5 w-48">
-                                            <div class="flex flex-col">
-                                                <div class="flex items-center justify-between">
-                                                    <span>Sección</span>
-                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('category')"></i>
-                                                </div>
-                                                <input type="text" placeholder="Filtrar..." class="filter-input" oninput="applyFaqFilters('category', this.value)">
-                                            </div>
-                                        </th>
-                                        <th class="p-5 text-center w-24">
-                                            <div class="flex flex-col items-center">
-                                                <div class="flex items-center justify-between w-full">
-                                                    <span>Likes</span>
-                                                    <i class="fas fa-sort sort-btn" onclick="sortFaqs('likes')"></i>
-                                                </div>
-                                                <input type="text" placeholder="0" class="filter-input text-center" oninput="applyFaqFilters('likes', this.value)">
-                                            </div>
-                                        </th>
-                                        <th class="p-5 text-right w-32">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-faqs-body" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Categoría</label>
+                        <select id="faq-category" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none"></select>
                     </div>
-
-                    <!-- VIEW: CATEGORIES -->
-                    <div id="view-categories" class="admin-view hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h4 class="text-xl font-bold">Gestión de Secciones</h4>
-                            <button onclick="openCatForm()" class="btn-naranja px-6 py-2.5 rounded-xl shadow-lg text-sm">
-                                <i class="fas fa-plus mr-2"></i> Nuevo Registro de Sección
-                            </button>
-                        </div>
-                        <div class="border rounded-3xl overflow-hidden shadow-sm">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
-                                    <tr>
-                                        <th class="p-5">Icono</th>
-                                        <th class="p-5">Nombre</th>
-                                        <th class="p-5 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-cats-body" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- VIEW: STATS -->
-                    <div id="view-stats" class="admin-view hidden space-y-10">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                            <div class="bg-slate-50 p-8 rounded-[2.5rem]">
-                                <h5 class="font-bold mb-6 flex items-center text-slate-700">
-                                    <i class="fas fa-chart-pie mr-3 text-cnciAzul"></i> Preguntas por Sección
-                                </h5>
-                                <div class="h-64 flex items-center justify-center">
-                                    <canvas id="chart-sections"></canvas>
-                                </div>
-                            </div>
-                            <div class="bg-slate-50 p-8 rounded-[2.5rem]">
-                                <h5 class="font-bold mb-6 flex items-center text-slate-700">
-                                    <i class="fas fa-heart mr-3 text-cnciNaranja"></i> Top Likes por Pregunta
-                                </h5>
-                                <div class="h-64 flex items-center justify-center">
-                                    <canvas id="chart-likes"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- VIEW: AREAS -->
-                    <div id="view-areas" class="admin-view hidden space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h4 class="text-xl font-bold">Gestión de Áreas Universitarias</h4>
-                            <button onclick="openAreaForm()" class="btn-naranja px-6 py-2.5 rounded-xl shadow-lg text-sm">
-                                <i class="fas fa-plus mr-2"></i> Nueva Área
-                            </button>
-                        </div>
-                        <div class="border rounded-3xl overflow-hidden shadow-sm">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-50 text-slate-500 font-bold border-b">
-                                    <tr>
-                                        <th class="p-5">Nombre del Área</th>
-                                        <th class="p-5 text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-areas-body" class="divide-y divide-slate-100">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- VIEW: DATA -->
-                    <div id="view-data" class="admin-view hidden space-y-10">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
-                                <h5 class="text-xl font-bold mb-2">Exportar CSV</h5>
-                                <button onclick="exportDataToCSV()" class="mt-4 bg-white text-cnciAzul border border-cnciAzul px-6 py-3 rounded-xl font-bold hover:bg-cnciAzul hover:text-white transition-all">Generar .CSV</button>
-                            </div>
-                            <div class="bg-orange-50 p-8 rounded-[2rem] border border-orange-100">
-                                <h5 class="text-xl font-bold mb-2">Importar CSV</h5>
-                                <input type="file" id="csv-upload" class="hidden" accept=".csv" onchange="importDataFromCSV(event)">
-                                <button onclick="document.getElementById('csv-upload').click()" class="btn-naranja mt-4 px-6 py-3 rounded-xl">Seleccionar Archivo</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FORMS -->
-                    <div id="admin-form-container" class="hidden animate__animated animate__fadeIn">
-                        <button onclick="closeAdminForm()" class="mb-6 text-cnciAzul font-bold flex items-center"><i class="fas fa-arrow-left mr-2"></i> Volver</button>
-                        
-                        <div id="faq-form-block" class="hidden">
-                            <h4 class="text-2xl font-black mb-8" id="faq-title-label">Añadir Pregunta</h4>
-                            <form id="faq-form" class="space-y-6 max-w-2xl">
-                                <input type="hidden" id="form-faq-id">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="text-xs font-bold uppercase text-slate-400">Sección (Categoría)</label>
-                                        <select id="form-faq-category" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-bold uppercase text-slate-400">Área Universitaria</label>
-                                        <select id="form-faq-area" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none"></select>
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="text-xs font-bold uppercase text-slate-400">Pregunta</label>
-                                        <input type="text" id="form-faq-question" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
-                                    </div>
-                                    
-                                    <div class="col-span-2">
-                                        <label class="text-xs font-bold uppercase text-slate-400">Respuesta Enriquecida</label>
-                                        <div class="border rounded-2xl overflow-hidden bg-slate-50">
-                                            <div class="bg-white border-b p-2 flex flex-wrap gap-1" id="editor-toolbar">
-                                                <button type="button" onclick="formatDoc('bold')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Negrita"><i class="fas fa-bold"></i></button>
-                                                <button type="button" onclick="formatDoc('italic')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Cursiva"><i class="fas fa-italic"></i></button>
-                                                <button type="button" onclick="formatDoc('insertUnorderedList')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Lista"><i class="fas fa-list-ul"></i></button>
-                                                <button type="button" onclick="formatDoc('createLink')" class="w-8 h-8 hover:bg-slate-100 rounded text-slate-600" title="Link"><i class="fas fa-link"></i></button>
-                                            </div>
-                                            <div id="form-faq-answer-editor" contenteditable="true" class="p-4 min-h-[150px] outline-none bg-transparent prose prose-sm max-w-none" onpaste="handlePaste(event)"></div>
-                                        </div>
-                                    </div>
-                                
-                                    <div class="col-span-2 bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-300 space-y-4">
-                                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Recursos Multimedia (Opcional)</p>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <input type="url" id="form-faq-video" placeholder="ID o Link YouTube" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
-                                            <input type="url" id="form-faq-image" placeholder="Link Imagen" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
-                                            <input type="text" id="form-faq-btn-text" placeholder="Texto Botón" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
-                                            <input type="url" id="form-faq-btn-url" placeholder="Link Botón" class="w-full bg-white border p-3 rounded-xl text-sm outline-none">
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-xl font-bold mt-4">Guardar Cambios</button>
-                            </form>
-                        </div>
-
-                        <div id="cat-form-block" class="hidden">
-                            <h4 class="text-2xl font-black mb-8" id="cat-title-label">Nueva Sección</h4>
-                            <form id="cat-form" class="space-y-6 max-w-md">
-                                <input type="hidden" id="form-cat-id">
-                                <input type="text" id="form-cat-name" placeholder="Nombre (Ej: Ingreso)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
-                                <input type="text" id="form-cat-icon" placeholder="Icono (Ej: fas fa-user)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
-                                <input type="text" id="form-cat-color" placeholder="Color Borde (Ej: border-cnciAzul)" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
-                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl">Guardar Sección</button>
-                            </form>
-                        </div>
-                        <div id="area-form-block" class="hidden">
-                            <h4 class="text-2xl font-black mb-8" id="area-title-label">Nueva Área Universitaria</h4>
-                            <form id="area-form" class="space-y-6 max-w-md">
-                                <input type="hidden" id="form-area-id">
-                                <div>
-                                    <label class="text-xs font-bold uppercase text-slate-400">Nombre del Área</label>
-                                    <input type="text" id="form-area-name" placeholder="Ej: Cobranza" required class="w-full bg-slate-50 border p-4 rounded-2xl outline-none">
-                                </div>
-                                <button type="submit" class="w-full btn-naranja py-4 rounded-2xl shadow-lg font-bold">Guardar Área</button>
-                            </form>
-                        </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Área Responsable</label>
+                        <select id="faq-area" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none"></select>
                     </div>
                 </div>
-            </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Respuesta Detallada</label>
+                    <div class="border rounded-xl overflow-hidden bg-white">
+                        <div class="bg-slate-50 p-2 border-b flex gap-1">
+                            <button type="button" onclick="document.execCommand('bold')" class="w-8 h-8 hover:bg-white rounded transition-all"><i class="fa-solid fa-bold"></i></button>
+                            <button type="button" onclick="document.execCommand('insertUnorderedList')" class="w-8 h-8 hover:bg-white rounded transition-all"><i class="fa-solid fa-list-ul"></i></button>
+                        </div>
+                        <div id="faq-answer-rte" contenteditable="true" class="p-5 min-h-[150px] outline-none text-slate-600 text-sm leading-relaxed"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Imagen de apoyo (URL)</label>
+                        <input type="url" id="faq-image" class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-red-500">Código de Inserción (Embed) de YouTube</label>
+                        <textarea id="faq-video-embed" placeholder='Ej: <iframe ... src="https://www.youtube.com/embed/..." ...></iframe>' 
+                            class="w-full px-5 py-3 bg-red-50/30 border border-red-100 rounded-xl outline-none text-[11px] font-mono h-24"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="window.closeModal('modal-faq')" class="px-6 py-2 text-slate-400 font-bold text-sm">Cerrar</button>
+                    <button type="submit" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-lg">Publicar FAQ</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, addDoc, deleteDoc, query, limit, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC8jIUPHKmcKy7eO1aq6eS4ZJ6kfq4zrBo",
@@ -405,752 +361,378 @@
             messagingSenderId: "1091325080953",
             appId: "1:1091325080953:web:14fd225a15f532f92feba8"
         };
+        const customAppId = "cnci-faq-hub-v2";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        let faqData = [];
-        let catData = [];
-        let areaData = []; // Almacenará las Áreas Universitarias
-        let filteredFaqs = [];
-        let faqSort = { field: 'question', order: 'asc' };
-        let faqFilters = { question: '', category: '', likes: '' };
-        let charts = {};
+        let faqsData = [], categoriesData = [], areasData = [], metricsData = [];
+        let currentCategory = 'all', searchQuery = '', chartL, chartC;
 
-        // --- LÓGICA DE EXPORTACIÓN ---
-        window.exportDataToCSV = () => {
-            if (!faqData || faqData.length === 0) {
-                alert("No hay datos para exportar");
-                return;
+        const extractYouTubeId = (input) => {
+            if (!input) return null;
+            const iframeMatch = input.match(/src="[^"]*\/embed\/([^"?]+)/);
+            if (iframeMatch && iframeMatch[1]) return iframeMatch[1];
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = input.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        };
+
+        const showToast = (msg, type='success') => {
+            const container = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = `px-6 py-4 rounded-xl shadow-xl text-white text-xs font-bold animate__animated animate__fadeInRight ${type === 'success' ? 'bg-blue-600' : 'bg-red-500'}`;
+            t.innerHTML = msg;
+            container.appendChild(t);
+            setTimeout(() => { t.classList.replace('animate__fadeInRight', 'animate__fadeOutRight'); setTimeout(() => t.remove(), 500); }, 3000);
+        };
+
+        async function trackSession() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), {
+                    city: data.city || 'Desconocido',
+                    region: data.region || 'Desconocido',
+                    country: data.country_name || 'Desconocido',
+                    ip: data.ip || '0.0.0.0',
+                    timestamp: serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+            } catch (e) { console.error("Error tracking session", e); }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            const isAdmin = user && !user.isAnonymous;
+            document.getElementById('admin-logged-info').classList.toggle('hidden', !isAdmin);
+            document.getElementById('nav-admin-btn').classList.toggle('hidden', isAdmin);
+            if (!window.listenersActive) {
+                setupListeners();
+                if (!isAdmin) trackSession();
             }
-        
-            // El secreto: Añadimos el BOM de UTF-8 (\ufeff) al inicio del contenido
-            let csvContent = "\ufeffquestion,answer,category,likes\n";
-        
-            faqData.forEach(faq => {
-                // Limpiamos y escapamos las comillas dobles internas
-                const q = `"${faq.question.replace(/"/g, '""')}"`;
-                const a = `"${faq.answer.replace(/"/g, '""')}"`;
-                const c = `"${faq.category}"`;
-                const l = faq.likes || 0;
-        
-                csvContent += `${q},${a},${c},${l}\n`;
+        });
+
+        async function setupListeners() {
+            window.listenersActive = true;
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'categories'), s => {
+                categoriesData = s.docs.map(d => ({id: d.id, ...d.data()}));
+                renderCategories();
+                updateSelects();
+                renderSimple();
             });
-        
-            // Creamos el archivo con codificación explícita UTF-8
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const fecha = new Date().toISOString().split('T')[0];
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", `respaldo_cnci_${fecha}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'areas'), s => {
+                areasData = s.docs.map(d => ({id: d.id, ...d.data()}));
+                updateSelects();
+                renderSimple();
+            });
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'), s => {
+                faqsData = s.docs.map(d => ({id: d.id, ...d.data()}));
+                renderFAQs();
+                renderAdminTable();
+                if(!document.getElementById('admin-tab-dashboard').classList.contains('hidden-view')) updateCharts();
+            });
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), s => {
+                metricsData = s.docs.map(d => ({id: d.id, ...d.data()}));
+                metricsData.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                renderMetricsTable();
+            });
+        }
 
-        // --- LÓGICA DE IMPORTACIÓN MAESTRA (Punto 5 del Plan) ---
-            window.importDataFromCSV = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-            
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const text = e.target.result;
-                    
-                    // Procesador robusto de CSV
-                    const parseCSV = (str) => {
-                        const rows = [];
-                        let quote = false, col = '', row = [];
-                        for (let c = 0; c < str.length; c++) {
-                            let char = str[c], next = str[c+1];
-                            if (char === '"' && quote && next === '"') { col += '"'; c++; continue; }
-                            if (char === '"') { quote = !quote; continue; }
-                            if (char === ',' && !quote) { row.push(col); col = ''; continue; }
-                            if (char === '\r' || char === '\n') {
-                                if (!quote) { 
-                                    if (row.length > 0 || col !== '') { row.push(col); rows.push(row); }
-                                    row = []; col = ''; 
-                                } else { col += '\n'; }
-                                continue;
-                            }
-                            col += char;
-                        }
-                        if (row.length > 0 || col !== '') { row.push(col); rows.push(row); }
-                        return rows;
-                    };
-    
-                    const data = parseCSV(text);
-                    const header = data[0]; // Pregunta, Respuesta, Categoría, Área, Video, Imagen, BtnTxt, BtnUrl
-                    const rows = data.slice(1);
-                    let count = 0;
-    
-                    for (let r of rows) {
-                        if (r.length < 2) continue; // Saltar líneas vacías
-                        
-                        const [question, answer, catName, areaName, vUrl, iUrl, bTxt, bUrl] = r.map(i => i?.trim());
-    
-                        if (question && answer) {
-                            // 1. Identificar Categoría (ID amigable)
-                            const categoryId = catName ? catName.toLowerCase().replace(/\s/g, '-') : 'general';
-                            
-                            // 2. Lógica de AUTO-CREACIÓN de Áreas (Punto 1.2 del Plan)
-                            let areaId = "";
-                            if (areaName) {
-                                // Buscamos si el área ya existe (sin importar mayúsculas)
-                                const existingArea = areaData.find(a => a.name.toLowerCase() === areaName.toLowerCase());
-                                if (existingArea) {
-                                    areaId = existingArea.id;
-                                } else {
-                                    // Si no existe, la creamos en milisegundos
-                                    const newAreaRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), { 
-                                        name: areaName 
-                                    });
-                                    areaId = newAreaRef.id;
-                                    // Actualizamos nuestra lista local temporalmente para no duplicar en el mismo ciclo
-                                    areaData.push({ id: areaId, name: areaName });
-                                }
-                            }
-    
-                            // 3. Guardar FAQ con toda la multimedia (Punto 3 del Plan)
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), {
-                                question: question,
-                                answer: answer, // El editor ya lo recibirá como HTML
-                                categoryId: categoryId,
-                                areaId: areaId,
-                                videoUrl: vUrl || "",
-                                imageUrl: iUrl || "",
-                                btnText: bTxt || "",
-                                btnUrl: bUrl || "",
-                                likes: 0,
-                                updatedAt: new Date()
-                            });
-                            count++;
-                        }
-                    }
-                    alert(`¡Éxito! Se importaron ${count} preguntas. El sistema vinculó automáticamente las Áreas y Multimedia.`);
-                    location.reload();
-                };
-                reader.readAsText(file, 'UTF-8');
-            };
-        // INIT
-        const init = async () => {
-            await signInAnonymously(auth);
-            setupListeners();
-        };
+        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderFAQs(); };
+        window.setCategory = (id) => { currentCategory = id; renderFAQs(); renderCategories(); };
 
-        const setupListeners = () => {
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'categories'), (snap) => {
-                catData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderCategoriesUI();
-                renderAdminCats();
-                updateFormSelectors();
-                if (charts.sections) updateStatsCharts();
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            const btnClass = (active) => `flex-shrink-0 px-5 py-2.5 rounded-xl text-[10px] font-black transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border hover:bg-slate-100 shadow-sm'}`;
+            let html = `<button onclick="window.setCategory('all')" class="${btnClass(currentCategory === 'all')}">TODOS</button>`;
+            categoriesData.forEach(c => html += `<button onclick="window.setCategory('${c.id}')" class="${btnClass(currentCategory === c.id)}">${c.name.toUpperCase()}</button>`);
+            container.innerHTML = html;
+        }
+
+        function renderFAQs() {
+            const container = document.getElementById('faqs-container');
+            const filtered = faqsData.filter(f => {
+                const matchCat = currentCategory === 'all' || f.categoryId === currentCategory;
+                const text = (f.question + f.answer).toLowerCase();
+                const matchSearch = !searchQuery || text.includes(searchQuery);
+                return matchCat && matchSearch;
             });
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), (snap) => {
-                faqData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                applyAllFaqProcessing();
-                renderFAQs(faqData);
-                if (charts.likes) updateStatsCharts();
-            });
-            // Escuchar Áreas Universitarias en tiempo real
-            // --- ESCUCHAR ÁREAS Y ACTUALIZAR TABLA/SELECTOR ---
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), (snapshot) => {
-                const areasList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // 1. Actualizar la tabla de administración de Áreas
-                const areasBody = document.getElementById('admin-areas-body');
-                if (areasBody) {
-                    areasBody.innerHTML = areasList.map(area => `
-                        <tr>
-                            <td class="p-5 font-medium">${area.name}</td>
-                            <td class="p-5 text-right space-x-2">
-                                <button onclick="editArea('${area.id}', '${area.name}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteAreaSafe('${area.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
+            if(!filtered.length) { container.innerHTML = '<div class="text-center py-20 text-slate-400 text-sm">No encontramos respuestas...</div>'; return; }
 
-                // 2. Actualizar el selector "Área Universitaria" en el formulario de FAQs
-                const areaSelect = document.getElementById('form-faq-area');
-                if (areaSelect) {
-                    areaSelect.innerHTML = '<option value="">Seleccionar Área...</option>' + 
-                        areasList.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-                }
-            });
-        };
+            container.innerHTML = filtered.map(f => {
+                const isOpen = window.openedFaqId === f.id;
+                const vId = extractYouTubeId(f.videoUrl);
+                const area = areasData.find(a => a.id === f.areaId)?.name || 'General';
+                const cat = categoriesData.find(c => c.id === f.categoryId)?.name || 'Trámite';
 
-        // --- NUEVO: Control de apertura ---
-        let openedFaqId = null; 
-
-        window.toggleFaq = (id, btn) => {
-            const parent = btn.parentElement;
-            const isOpening = !parent.classList.contains('active');
-            
-            // Cerramos otros (opcional, para que solo haya uno abierto)
-            document.querySelectorAll('.accordion-item').forEach(item => item.classList.remove('active'));
-            
-            if (isOpening) {
-                parent.classList.add('active');
-                openedFaqId = id; // Memorizamos cuál se abrió
-            } else {
-                parent.classList.remove('active');
-                openedFaqId = null; // Limpiamos si se cerró manualmente
-            }
-        };
-        
-        // UI PUBLIC: Renderizado de preguntas con Multimedia y Áreas
-        window.renderFAQs = () => {
-            const list = document.getElementById('faq-list');
-            const empty = document.getElementById('empty-search');
-            
-            if (!list) return;
-        
-            let filtered = faqData.filter(faq => {
-                const matchesCat = currentCategory === 'all' || faq.categoryId === currentCategory;
-                if (searchTerm.trim().length < 3) return matchesCat;
-        
-                const normalize = (text) => 
-                    (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        
-                const searchNormalized = normalize(searchTerm);
-                const questionNormalized = normalize(faq.question);
-                
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = faq.answer || "";
-                const cleanText = tempDiv.textContent || tempDiv.innerText || "";
-                const answerNormalized = normalize(cleanText);
-        
-                const words = searchNormalized.split(' ').filter(w => w.length > 0);
-                return matchesCat && words.every(word => 
-                    questionNormalized.includes(word) || answerNormalized.includes(word)
-                );
-            });
-        
-            filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-        
-            const totalPages = Math.ceil(filtered.length / itemsPerPage);
-            if (currentPage > totalPages) currentPage = 1;
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const paginatedItems = filtered.slice(startIndex, startIndex + itemsPerPage);
-        
-            list.innerHTML = '';
-        
-            // Manejo de estado vacío
-            if (filtered.length === 0) {
-                if (empty) empty.classList.remove('hidden');
-                // Buscamos el contenedor de paginación por si ya existe para limpiarlo
-                const pContainer = document.getElementById('pagination-container');
-                if (pContainer) pContainer.innerHTML = '';
-                return;
-            }
-            
-            if (empty) empty.classList.add('hidden');
-        
-            paginatedItems.forEach((faq, index) => {
-                const isTop = (faq.likes > 0 && currentPage === 1 && index === 0);
-                const isActiveClass = (faq.id === openedFaqId) ? 'active' : '';
-                
-                const area = areaData.find(a => a.id === faq.areaId);
-                const areaName = area ? area.name : 'General';
-                const category = catData.find(c => c.id === faq.categoryId);
-                const catName = category ? category.name : 'Varios';
-        
-                let videoHTML = '';
-                if (faq.videoUrl) {
-                    const videoId = faq.videoUrl.includes('v=') ? faq.videoUrl.split('v=')[1].split('&')[0] : faq.videoUrl.split('/').pop();
-                    videoHTML = `<div class="mb-6 rounded-2xl overflow-hidden shadow-lg bg-black aspect-video">
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
-                    </div>`;
-                }
-        
-                const div = document.createElement('div');
-                div.className = `accordion-item border rounded-3xl overflow-hidden bg-white shadow-sm animate__animated animate__fadeIn ${isActiveClass}`;
-                div.innerHTML = `
-                    <button class="w-full flex items-center justify-between p-6 text-left" onclick="toggleFaq('${faq.id}', this)">
-                        <span class="font-bold flex items-center pr-4">
-                            <i class="fas fa-question-circle mr-3 text-cnciAzul"></i> 
-                            ${faq.question}
-                            ${isTop ? `<span class="ml-3 text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-lg flex items-center gap-1 border border-orange-200"><i class="fas fa-fire"></i> TOP</span>` : ''}
-                        </span>
-                        <i class="fas fa-chevron-down text-slate-300 chevron transition-all"></i>
+                return `
+                <div class="bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100/50">
+                    <button onclick="window.toggleFaq('${f.id}')" class="w-full text-left p-6 flex justify-between items-center group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-circle-question text-xs"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm md:text-base">${f.question}</h3>
+                                ${f.clicks > 10 ? '<span class="text-[8px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded mt-1 inline-block uppercase tracking-wider">🔥 Popular</span>' : ''}
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-slate-300 text-xs transition-transform ${isOpen ? 'rotate-180' : ''}"></i>
                     </button>
-                    <div class="accordion-content">
-                        <div class="p-8 border-t bg-slate-50/30">
-                            <div class="prose prose-sm max-w-none text-slate-600 mb-6">${faq.answer}</div>
-                            ${videoHTML}
-                            ${faq.imageUrl ? `<div class="mb-6"><img src="${faq.imageUrl}" class="rounded-2xl w-full object-cover shadow-md"></div>` : ''}
-                            ${faq.btnUrl ? `<div class="mb-6"><a href="${faq.btnUrl}" target="_blank" class="inline-block bg-slate-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm">${faq.btnText || 'Ver más'}</a></div>` : ''}
-                            <div class="mt-6 pt-6 border-t flex justify-between items-center">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-black uppercase text-slate-400">Área Universitaria: ${areaName}</span>
-                                    <span class="text-[9px] font-bold text-cnciAzul uppercase">${catName}</span>
+                    <div class="overflow-hidden transition-all duration-300" style="max-height: ${isOpen ? 'auto' : '0'}; display: ${isOpen ? 'block' : 'none'}">
+                        <div class="px-6 pb-8 pt-2 border-t border-slate-50 faq-content">
+                            <div class="text-slate-600 text-sm leading-relaxed mb-4">${f.answer}</div>
+                            ${f.imageUrl ? `<img src="${f.imageUrl}" alt="Apoyo Visual" class="w-full">` : ''}
+                            ${vId ? `<div class="video-wrapper mt-4"><iframe src="https://www.youtube.com/embed/${vId}?rel=0" allowfullscreen></iframe></div>` : ''}
+                            <div class="mt-8 pt-6 border-t border-slate-50 flex flex-wrap justify-between items-center gap-4">
+                                <div class="space-y-1">
+                                    <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest">Área: ${area}</p>
+                                    <span class="tag-pill bg-blue-50 text-blue-600">${cat}</span>
                                 </div>
-                                <button onclick="handleLike('${faq.id}', event)" class="px-4 py-2 rounded-full border bg-white flex items-center gap-2 hover:scale-105 transition-all shadow-sm">
-                                    <i class="fas fa-heart ${faq.likes > 0 ? 'text-red-500' : 'text-slate-300'}"></i> 
-                                    <span class="font-bold text-sm">${faq.likes || 0}</span>
+                                <button onclick="window.handleLike(event, '${f.id}')" class="flex items-center gap-2 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all font-bold text-slate-400 group">
+                                    <i class="fa-solid fa-heart group-hover:text-red-500 ${f.likes>0?'text-red-400':''}"></i>
+                                    <span class="text-[10px]">${f.likes || 0}</span>
                                 </button>
                             </div>
                         </div>
-                    </div>`;
-                list.appendChild(div);
-            });
-                    
-            renderPagination(totalPages);
-        };
-        
-        // Nueva función de apoyo para los botones
-        const renderPagination = (totalPages) => {
-            let pagDiv = document.getElementById('pagination-container');
-            if (!pagDiv) {
-                pagDiv = document.createElement('div');
-                pagDiv.id = 'pagination-container';
-                document.getElementById('faq-list').after(pagDiv);
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.toggleFaq = async (id) => { 
+            const isOpening = window.openedFaqId !== id;
+            window.openedFaqId = isOpening ? id : null; 
+            renderFAQs();
+            if(isOpening) {
+                await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), { clicks: increment(1) });
             }
-            
-            if (totalPages <= 1) {
-                pagDiv.innerHTML = '';
-                return;
-            }
-        
-            let html = `<div class="flex justify-center items-center gap-2 mt-8 mb-12">`;
-            for (let i = 1; i <= totalPages; i++) {
-                const isActive = i === currentPage;
-                html += `
-                    <button onclick="changePage(${i})" 
-                        class="w-10 h-10 rounded-xl border font-bold transition-all ${isActive ? 'bg-cnciAzul text-white border-cnciAzul shadow-lg' : 'bg-white text-slate-400 hover:border-cnciAzul hover:text-cnciAzul'}">
-                        ${i}
-                    </button>`;
-            }
-            html += `</div>`;
-            pagDiv.innerHTML = html;
-        };
-        
-        window.changePage = (num) => {
-            currentPage = num;
-            window.renderFAQs();
-            
-            // CAMBIO: Apuntamos directamente al contenedor del buscador o de la lista
-            // Usamos 'faq-list' o el contenedor del buscador para que quede en el top visual
-            const target = document.getElementById('search-container') || document.getElementById('faq-list');
-            
-            if (target) {
-                window.scrollTo({ 
-                    top: target.offsetTop - 100, // Restamos 100px para que no quede pegado al borde superior
-                    behavior: 'smooth' 
-                });
-            }
-        };
-        const renderCategoriesUI = () => {
-            const grid = document.getElementById('category-grid');
-            if (!grid) return;
-            grid.innerHTML = catData.map(cat => `
-                <div onclick="filterByCat('${cat.id}')" class="category-card bg-white p-6 rounded-[2rem] shadow-lg text-center border-b-4 ${cat.colorClass} cursor-pointer">
-                    <i class="${cat.iconClass} text-2xl mb-3 text-slate-600 block"></i>
-                    <span class="font-bold text-slate-700">${cat.name}</span>
-                </div>
-            `).join('');
-        };
-        window.filterByCat = (id) => {
-            currentCategory = id; 
-            currentPage = 1;      // Reiniciamos a la primera página
-            window.renderFAQs();  // Dibujamos con el nuevo filtro
-            
-            // Opcional: Desplazar suavemente hacia las preguntas
-            document.getElementById('faq-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
-        // ADMIN PROCESSING
-        const applyAllFaqProcessing = () => {
-            // 1. Filter
-            filteredFaqs = faqData.filter(f => {
-                const qMatch = f.question.toLowerCase().includes(faqFilters.question.toLowerCase());
-                const cMatch = f.category.toLowerCase().includes(faqFilters.category.toLowerCase());
-                const lMatch = f.likes.toString().includes(faqFilters.likes);
-                return qMatch && cMatch && lMatch;
-            });
-            // 2. Sort
-            filteredFaqs.sort((a, b) => {
-                let valA = a[faqSort.field];
-                let valB = b[faqSort.field];
-                if (typeof valA === 'string') {
-                    valA = valA.toLowerCase();
-                    valB = valB.toLowerCase();
-                }
-                if (valA < valB) return faqSort.order === 'asc' ? -1 : 1;
-                if (valA > valB) return faqSort.order === 'asc' ? 1 : -1;
-                return 0;
-            });
-            renderAdminFaqs();
-        };
-
-        window.applyFaqFilters = (field, val) => {
-            faqFilters[field] = val;
-            applyAllFaqProcessing();
-        };
-
-        window.sortFaqs = (field) => {
-            if (faqSort.field === field) {
-                faqSort.order = faqSort.order === 'asc' ? 'desc' : 'asc';
-            } else {
-                faqSort.field = field;
-                faqSort.order = 'asc';
-            }
-            applyAllFaqProcessing();
-        };
-
-        const renderAdminFaqs = () => {
-            const body = document.getElementById('admin-faqs-body');
-            body.innerHTML = filteredFaqs.map(f => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-5 font-medium">${f.question}</td>
-                    <td class="p-5 text-[10px] font-black uppercase text-slate-400">${f.category}</td>
-                    <td class="p-5 text-center font-bold text-cnciNaranja">${f.likes || 0}</td>
-                    <td class="p-5 text-right whitespace-nowrap">
-                        <button onclick="editFaq('${f.id}')" class="p-2 text-cnciAzul"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteFaq('${f.id}')" class="p-2 text-red-400"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        };
-
-        const renderAdminCats = () => {
-            const body = document.getElementById('admin-cats-body');
-            body.innerHTML = catData.map(c => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-5"><i class="${c.iconClass} text-slate-400"></i></td>
-                    <td class="p-5 font-bold">${c.name}</td>
-                    <td class="p-5 text-right">
-                        <button onclick="editCat('${c.id}')" class="p-2 text-cnciAzul"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteCat('${c.id}')" class="p-2 text-red-400"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        };
-
-        // STATS
-        const updateStatsCharts = () => {
-        // 1. Validar que existan datos y elementos
-        const ctx1 = document.getElementById('chart-sections');
-        const ctx2 = document.getElementById('chart-likes');
-        if (!ctx1 || !ctx2 || faqData.length === 0) return;
-    
-        // 2. Conteos por Sección (Corregido f.category -> f.categoryId)
-        const secCounts = {};
-        catData.forEach(c => secCounts[c.id] = 0);
-        faqData.forEach(f => { 
-            if(f.categoryId && secCounts[f.categoryId] !== undefined) {
-                secCounts[f.categoryId]++; 
-            }
-        });
-    
-        // Gráfica de Barras: Preguntas por Sección
-        if (charts.sections) charts.sections.destroy();
-        charts.sections = new Chart(ctx1.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(secCounts).map(id => catData.find(c => c.id === id)?.name || id),
-                datasets: [{
-                    label: 'Cantidad de Preguntas',
-                    data: Object.values(secCounts),
-                    backgroundColor: '#2a6aff',
-                    borderRadius: 10
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-    
-        // 3. Top Likes (Corregido para manejar nulos)
-        const topLikes = [...faqData]
-            .sort((a,b) => (b.likes || 0) - (a.likes || 0))
-            .slice(0, 5);
-    
-        // Gráfica Horizontal: Top 5 Preguntas con más Likes
-        if (charts.likes) charts.likes.destroy();
-        charts.likes = new Chart(ctx2.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: topLikes.map(f => f.question.substring(0, 25) + '...'),
-                datasets: [{
-                    label: 'Votos útiles (Likes)',
-                    data: topLikes.map(f => f.likes || 0),
-                    backgroundColor: '#ff8500',
-                    borderRadius: 10
-                }]
-            },
-            options: { 
-                indexAxis: 'y', 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-    };
-
-        // TABS & FORMS
+        window.handleLike = async (e, id) => { e.stopPropagation(); await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), { likes: increment(1) }); };
         
-        window.switchAdminMainTab = (tab) => {
-            // 1. Gestionar botones del sidebar
-            document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
+        window.showLoginModal = () => document.getElementById('modal-login').classList.remove('hidden-view');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden-view');
         
-            // 2. Ocultar todas las vistas y formularios
-            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
-            document.getElementById('admin-form-container').classList.add('hidden');
-        
-            // 3. Mostrar la vista seleccionada
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-        
-            // NUEVO: Si la pestaña es stats, redibujar gráficas
-            if (tab === 'stats') {
-                setTimeout(() => {
-                    updateStatsCharts();
-                }, 100); // Pequeño delay para asegurar que el contenedor sea visible
-            }
-        };
-        
-        window.formatDoc = (cmd, value = null) => {
-            document.execCommand(cmd, false, value);
-            document.getElementById('form-faq-answer-editor').focus();
-        };        
-        // Listener para el formulario de Áreas
-            document.getElementById('area-form').onsubmit = async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('form-area-id').value;
-                const areaData = {
-                    name: document.getElementById('form-area-name').value
-                };
-            
-                try {
-                    if (id) {
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'areas', id), areaData);
-                    } else {
-                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'areas'), areaData);
-                    }
-                    alert("Área guardada con éxito");
-                    switchAdminMainTab('areas');
-                } catch (error) {
-                    console.error("Error al guardar área:", error);
-                }
-            };
-        window.openAreaForm = () => {
-            document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
-            document.getElementById('admin-form-container').classList.remove('hidden');
-            document.getElementById('faq-form-block').classList.add('hidden');
-            document.getElementById('cat-form-block').classList.add('hidden');
-            document.getElementById('area-form-block').classList.remove('hidden');
-            
-            document.getElementById('area-form').reset();
-            document.getElementById('form-area-id').value = '';
-            document.getElementById('area-title-label').innerText = 'Nueva Área Universitaria';
-        };
-        
-                            
-        // Limpia el texto pegado para evitar que traiga estilos raros de Word o webs
-        window.handlePaste = (e) => {
+        window.handleLogin = async (e) => {
             e.preventDefault();
-            const text = e.clipboardData.getData('text/plain');
-            document.execCommand('insertText', false, text);
-        };
-
-        window.openFaqForm = () => {
-            document.getElementById('view-faqs').classList.add('hidden');
-            document.getElementById('admin-form-container').classList.remove('hidden');
-            document.getElementById('faq-form-block').classList.remove('hidden');
-            document.getElementById('cat-form-block').classList.add('hidden');
-            document.getElementById('faq-form').reset();
-            document.getElementById('form-faq-id').value = '';
-        };
-
-        window.openCatForm = () => {
-            document.getElementById('view-categories').classList.add('hidden');
-            document.getElementById('admin-form-container').classList.remove('hidden');
-            document.getElementById('cat-form-block').classList.remove('hidden');
-            document.getElementById('faq-form-block').classList.add('hidden');
-            document.getElementById('cat-form').reset();
-            document.getElementById('form-cat-id').value = '';
-        };
-
-        window.closeAdminForm = () => {
-            document.getElementById('admin-form-container').classList.add('hidden');
-            document.getElementById('view-faqs').classList.add('hidden');
-            document.getElementById('view-categories').classList.add('hidden');
-            document.getElementById('view-stats').classList.add('hidden');
-            document.getElementById('view-data').classList.add('hidden');
-            
-            const activeTab = document.querySelector('.admin-tab.active').id.replace('tab-', '');
-            document.getElementById(`view-${activeTab}`).classList.remove('hidden');
-        };
-        // CRUD: Guardado de Preguntas (Actualizado con Multimedia y Editor)
-        document.getElementById('faq-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('form-faq-id').value;
-            
-            // Recopilamos todos los nuevos campos
-            const data = {
-                question: document.getElementById('form-faq-question').value,
-                // Usamos innerHTML para guardar las negritas y links del editor
-                answer: document.getElementById('form-faq-answer-editor').innerHTML, 
-                categoryId: document.getElementById('form-faq-category').value,
-                areaId: document.getElementById('form-faq-area').value,
-                videoUrl: document.getElementById('form-faq-video').value,
-                imageUrl: document.getElementById('form-faq-image').value,
-                btnText: document.getElementById('form-faq-btn-text').value,
-                btnUrl: document.getElementById('form-faq-btn-url').value,
-                likes: id ? (faqData.find(f => f.id === id)?.likes || 0) : 0,
-                updatedAt: new Date()
-            };
-
             try {
-                if (id) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), data);
-                } else {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'faqs'), data);
-                }
-                alert("Pregunta guardada correctamente");
-                closeAdminForm();
-                location.reload(); // Recargamos para que se vean los cambios multimedia
-            } catch (error) {
-                console.error("Error al guardar FAQ:", error);
-                alert("Hubo un error al guardar");
-            }
+                await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value);
+                window.closeModal('modal-login');
+                document.getElementById('view-client').classList.add('hidden-view');
+                document.getElementById('view-admin').classList.remove('hidden-view');
+                updateCharts();
+            } catch(e) { showToast("Error de acceso", "error"); }
         };
 
-        document.getElementById('cat-form').onsubmit = async (e) => {
+        window.logoutAdmin = async () => { await signOut(auth); location.reload(); };
+
+        window.switchAdminTab = (t) => {
+            ['dashboard', 'metrics', 'faqs', 'categories'].forEach(id => {
+                const el = document.getElementById(`admin-tab-${id}`);
+                if (el) el.classList.toggle('hidden-view', id !== t);
+                const btn = document.getElementById(`tab-btn-${id}`);
+                if (btn) btn.className = `px-6 py-2 rounded-xl text-xs font-bold ${id === t ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`;
+            });
+            if(t === 'dashboard') setTimeout(updateCharts, 50);
+        };
+
+        window.saveFaq = async (e) => {
             e.preventDefault();
-            const id = document.getElementById('form-cat-id').value;
-            const name = document.getElementById('form-cat-name').value;
-            const cid = id || name.toLowerCase().replace(/\s/g, '-');
+            const id = document.getElementById('faq-id').value;
             const data = {
-                id: cid,
-                name: name,
-                iconClass: document.getElementById('form-cat-icon').value,
-                colorClass: document.getElementById('form-cat-color').value
+                question: document.getElementById('faq-question').value,
+                categoryId: document.getElementById('faq-category').value,
+                areaId: document.getElementById('faq-area').value,
+                answer: document.getElementById('faq-answer-rte').innerHTML,
+                imageUrl: document.getElementById('faq-image').value,
+                videoUrl: document.getElementById('faq-video-embed').value,
+                updatedAt: serverTimestamp()
             };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', cid), data);
-            closeAdminForm();
+            if(id) await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), data);
+            else await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'), {...data, likes: 0, clicks: 0, createdAt: serverTimestamp()});
+            window.closeModal('modal-faq');
+            showToast("FAQ guardada correctamente");
+        };
+
+        function renderAdminTable() {
+            document.getElementById('admin-faqs-table-body').innerHTML = faqsData.map(f => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 font-semibold text-slate-700 text-xs">${f.question}</td>
+                    <td class="px-6 py-4 text-center"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-black">${f.likes || 0}</span></td>
+                    <td class="px-6 py-4 text-center"><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black">${f.clicks || 0}</span></td>
+                    <td class="px-6 py-4 text-right space-x-1">
+                        <button onclick="window.editFaq('${f.id}')" class="p-2 text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="window.deleteFaq('${f.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        window.renderMetricsTable = () => {
+            const search = document.getElementById('metric-table-search').value.toLowerCase();
+            const filtered = metricsData.filter(m => 
+                m.city.toLowerCase().includes(search) || 
+                m.region.toLowerCase().includes(search) || 
+                m.ip.toLowerCase().includes(search) ||
+                m.country.toLowerCase().includes(search)
+            );
+
+            document.getElementById('admin-metrics-table-body').innerHTML = filtered.slice(0, 100).map(m => {
+                const date = m.timestamp?.toDate() || new Date();
+                return `
+                <tr class="hover:bg-slate-50 text-[11px]">
+                    <td class="px-6 py-4 text-slate-600 font-medium">${date.toLocaleString('es-MX')}</td>
+                    <td class="px-6 py-4 font-bold text-slate-800">${m.city}, ${m.region}</td>
+                    <td class="px-6 py-4 text-slate-500">${m.country}</td>
+                    <td class="px-6 py-4 font-mono text-slate-400">${m.ip}</td>
+                </tr>`;
+            }).join('');
+        };
+
+        window.updateCharts = () => {
+            const catF = document.getElementById('dash-filter-cat').value;
+            const areaF = document.getElementById('dash-filter-area').value;
+            const startF = document.getElementById('dash-filter-start').value;
+            const endF = document.getElementById('dash-filter-end').value;
+
+            let filtered = faqsData.filter(f => {
+                const matchCat = catF === 'all' || f.categoryId === catF;
+                const matchArea = areaF === 'all' || f.areaId === areaF;
+                
+                let matchDate = true;
+                if(startF || endF) {
+                    const fDate = f.createdAt?.toDate() || new Date();
+                    if(startF && fDate < new Date(startF)) matchDate = false;
+                    if(endF && fDate > new Date(endF)) matchDate = false;
+                }
+                return matchCat && matchArea && matchDate;
+            });
+
+            const ctxL = document.getElementById('chartTopLikes'), ctxC = document.getElementById('chartTopClicks');
+            if(!ctxL || !ctxC) return;
+            
+            if(chartL) chartL.destroy();
+            if(chartC) chartC.destroy();
+
+            const topLikes = [...filtered].sort((a,b) => b.likes - a.likes).slice(0,10);
+            const topClicks = [...filtered].sort((a,b) => b.clicks - a.clicks).slice(0,10);
+
+            const chartConfig = (data, label, color) => ({
+                type: 'bar',
+                data: {
+                    labels: data.map(x => x.question.length > 40 ? x.question.substring(0, 37) + '...' : x.question),
+                    datasets: [{
+                        label: label,
+                        data: data.map(x => (label === 'Likes' ? x.likes : x.clicks)),
+                        backgroundColor: color,
+                        borderRadius: 8,
+                        barThickness: 24
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Barra horizontal para leer mejor los nombres
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { 
+                            backgroundColor: '#1e293b',
+                            titleFont: { family: 'Poppins', size: 12 },
+                            bodyFont: { family: 'Poppins', size: 11 },
+                            callbacks: {
+                                label: (context) => ` ${label}: ${context.parsed.x}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#475569' } }
+                    }
+                }
+            });
+
+            chartL = new Chart(ctxL, chartConfig(topLikes, 'Likes', '#f97316'));
+            chartC = new Chart(ctxC, chartConfig(topClicks, 'Aperturas', '#2563eb'));
+        };
+
+        window.resetDashFilters = () => {
+            document.getElementById('dash-filter-cat').value = 'all';
+            document.getElementById('dash-filter-area').value = 'all';
+            document.getElementById('dash-filter-start').value = '';
+            document.getElementById('dash-filter-end').value = '';
+            updateCharts();
+        };
+
+        window.openFaqModal = () => {
+            document.getElementById('faq-id').value = '';
+            document.getElementById('faq-question').value = '';
+            document.getElementById('faq-answer-rte').innerHTML = '';
+            document.getElementById('faq-image').value = '';
+            document.getElementById('faq-video-embed').value = '';
+            document.getElementById('modal-faq-title').innerText = 'Publicar Respuesta';
+            document.getElementById('modal-faq').classList.remove('hidden-view');
         };
 
         window.editFaq = (id) => {
-            const f = faqData.find(f => f.id === id);
-            openFaqForm();
-            document.getElementById('form-faq-id').value = f.id;
-            document.getElementById('form-faq-question').value = f.question;
-            document.getElementById('form-faq-answer').value = f.answer;
-            document.getElementById('form-faq-category').value = f.category;
-            document.getElementById('faq-title-label').innerText = "Editar Pregunta";
+            const f = faqsData.find(x => x.id === id);
+            document.getElementById('faq-id').value = f.id;
+            document.getElementById('faq-question').value = f.question;
+            document.getElementById('faq-category').value = f.categoryId;
+            document.getElementById('faq-area').value = f.areaId;
+            document.getElementById('faq-answer-rte').innerHTML = f.answer;
+            document.getElementById('faq-image').value = f.imageUrl || '';
+            document.getElementById('faq-video-embed').value = f.videoUrl || '';
+            document.getElementById('modal-faq').classList.remove('hidden-view');
         };
 
-        window.editCat = (id) => {
-            const c = catData.find(c => c.id === id);
-            openCatForm();
-            document.getElementById('form-cat-id').value = c.id;
-            document.getElementById('form-cat-name').value = c.name;
-            document.getElementById('form-cat-icon').value = c.iconClass;
-            document.getElementById('form-cat-color').value = c.colorClass;
-        };
-
-        window.deleteFaq = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id)); };
-        window.deleteCat = async (id) => { if(confirm("¿Eliminar sección?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id)); };
-
-        const updateFormSelectors = () => {
-            const sel = document.getElementById('form-faq-category');
-            sel.innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        };
-
-        window.handleLike = async (id, e) => {
-    // ESTO ES LO MÁS IMPORTANTE:
-    // Evita que el clic llegue al botón del acordeón y lo cierre
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'faqs', id), { 
-                    likes: increment(1) 
-                });
-                // Nota: No necesitas recargar la página, Firestore en tiempo real 
-                // debería detectar el cambio y renderizar de nuevo.
-            } catch (error) {
-                console.error("Error al dar like:", error);
+        window.deleteFaq = async (id) => {
+            if(confirm('¿Eliminar esta FAQ de forma permanente?')) {
+                await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id));
+                showToast("FAQ eliminada", "error");
             }
         };
 
-        // --- LÓGICA DE FILTRADO Y LIMPIEZA ---
+        window.updateSelects = () => {
+            const selects = [
+                {id: 'faq-category', data: categoriesData, default: false},
+                {id: 'faq-area', data: areasData, default: false},
+                {id: 'dash-filter-cat', data: categoriesData, default: true},
+                {id: 'dash-filter-area', data: areasData, default: true}
+            ];
 
-        window.clearAllFilters = () => {
-            searchTerm = '';
-            currentCategory = 'all';
-            currentPage = 1;
-            const input = document.getElementById('search-input');
-            if (input) input.value = '';
-            const title = document.getElementById('section-title');
-            if (title) title.innerText = 'Preguntas Frecuentes';
-            window.renderFAQs();
-        };
-
-        window.filterByCat = (catId) => {
-            currentCategory = catId;
-            currentPage = 1;
-            const title = document.getElementById('section-title');
-            const category = catData.find(c => c.id === catId);
-            if (title && category) title.innerText = category.name;
-            window.renderFAQs();
-        };
-
-        // --- ACCESO ADMINISTRADOR ---
-
-        document.getElementById('admin-lock-btn').onclick = () => {
-            if (prompt("Clave:") === "cnci2026") document.getElementById('admin-modal').classList.remove('hidden');
-        };
-        document.getElementById('close-admin-btn').onclick = () => document.getElementById('admin-modal').classList.add('hidden');
-
-        // --- INICIALIZACIÓN ---
-
-        init();
-
-        // Escuchar la barra de búsqueda
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                searchTerm = e.target.value; 
-                currentPage = 1;
-                window.renderFAQs();
-            });
-        }
-        // FUNCIÓN DE SEGURIDAD: Borrado de áreas (Punto 1.3 del Plan)
-        window.deleteAreaSafe = async (id) => {
-            // Verificamos si existe alguna FAQ que use este areaId
-            const hasFaqs = faqData.some(f => f.areaId === id);
-            
-            if (hasFaqs) {
-                alert("❌ SEGURIDAD: No puedes eliminar esta área porque tiene preguntas vinculadas. Reasigna las preguntas a otra área antes de borrarla.");
-            } else {
-                if (confirm("¿Estás seguro de eliminar esta área? Esta acción no se puede deshacer.")) {
-                    try {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'areas', id));
-                        alert("Área eliminada correctamente.");
-                    } catch (error) {
-                        console.error("Error al eliminar:", error);
-                    }
+            selects.forEach(s => {
+                const el = document.getElementById(s.id);
+                if(el) {
+                    let html = s.default ? '<option value="all">Todas</option>' : '';
+                    html += s.data.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+                    el.innerHTML = html;
                 }
-            }
+            });
         };
+
+        window.openSimpleModal = (type) => {
+            const name = prompt(`Nombre del nuevo elemento (${type}):`);
+            if(name) addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', type === 'category' ? 'categories' : 'areas'), { name });
+        };
+
+        window.renderSimple = () => {
+            document.getElementById('admin-categories-list').innerHTML = categoriesData.map(c => `
+                <li class="py-3 flex justify-between items-center group"><span class="text-slate-600 font-medium">${c.name}</span> 
+                <button onclick="window.delSimple('categories','${c.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
+            document.getElementById('admin-areas-list').innerHTML = areasData.map(a => `
+                <li class="py-3 flex justify-between items-center group"><span class="text-slate-600 font-medium">${a.name}</span> 
+                <button onclick="window.delSimple('areas','${a.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
+        };
+        window.delSimple = async (col, id) => { if(confirm('¿Seguro? Se podrían ver afectadas las FAQs vinculadas.')) await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', col, id)); };
+
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('closed');
+        };
+
+        signInAnonymously(auth);
     </script>
 </body>
 </html>
