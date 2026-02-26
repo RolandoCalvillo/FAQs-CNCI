@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Ayuda CNCI | Premium</title>
+    <title>Centro de Ayuda CNCI</title>
     
     <!-- Fuentes y Estilos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,7 @@
                         cnciDark: '#1e40af',
                         cnciNavy: '#004aad',
                         accent: '#ff8500',
-                        bgSoft: '#f8fafc'
+                        universityGold: '#facc15'
                     },
                     borderRadius: { '3xl': '1.5rem' },
                     boxShadow: { 'premium': '0 20px 50px -12px rgba(0,74,173,0.12)' }
@@ -34,194 +34,193 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
         
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 1rem;
-            background: #000;
-        }
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-        
-        .faq-content { height: auto; overflow: visible; }
-        .faq-content img { max-width: 100%; height: auto; border-radius: 1rem; margin: 1rem 0; }
+        /* Animaciones Universitarias */
+        .reveal-on-scroll { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .reveal-on-scroll.visible { opacity: 1; transform: translateY(0); }
 
+        .video-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1.5rem; background: #000; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        
         .hero-gradient {
             background: linear-gradient(135deg, #004aad 0%, #002d69 100%);
-            padding-bottom: 120px;
+            position: relative;
         }
+
+        .hero-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, #f8fafc, transparent);
+        }
+
+        .faq-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .faq-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-answer-text { font-size: 0.95rem; line-height: 1.7; }
+        @media (min-width: 1024px) { .faq-answer-text { font-size: 1.15rem; } }
+
+        #mobile-menu { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(-150%);
+            opacity: 0;
+            pointer-events: none;
+            position: fixed;
+            z-index: 40;
+        }
+        #mobile-menu.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .hidden-view { display: none !important; }
 
-        .tag-pill {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 6px;
-            letter-spacing: 0.05em;
-        }
+        .sort-icon { font-size: 10px; margin-left: 4px; cursor: pointer; color: #cbd5e1; }
+        .sort-icon.active { color: #2563eb; }
 
-        #mobile-menu { transition: transform 0.3s ease-in-out; }
-        #mobile-menu.closed { transform: translateY(-120%); }
-
-        .filters-container {
-            position: relative;
-            z-index: 20;
-            margin-top: -60px;
-        }
+        /* Estilo para los datos de las barras en las gráficas */
+        .chart-container { position: relative; height: 300px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
 
-    <nav class="bg-white sticky top-0 z-50 border-b border-slate-100 shadow-sm">
+    <nav class="bg-white sticky top-0 z-50 border-b border-slate-100 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex justify-between items-center">
-            <div class="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onclick="location.reload()">
-                <img class="h-8 sm:h-10 w-auto" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png" alt="Logo CNCI">
-                <span class="ml-3 text-lg font-bold text-slate-800 hidden lg:block tracking-tight">Centro de Ayuda</span>
+            <div class="flex items-center cursor-pointer group" onclick="location.reload()">
+                <div class="bg-blue-600 p-1.5 rounded-lg mr-3 group-hover:scale-110 transition-transform">
+                    <img class="h-7 w-auto" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png" alt="Logo CNCI">
+                </div>
+                <span class="text-xl font-extrabold text-slate-800 tracking-tight">Centro de Ayuda <span class="text-blue-600">CNCI</span></span>
             </div>
 
-            <div class="hidden md:flex items-center space-x-6 lg:space-x-8 text-sm font-semibold text-slate-600">
+            <div class="hidden md:flex items-center space-x-8 text-sm font-bold text-slate-600 uppercase tracking-widest">
                 <a href="https://www.office.com/" target="_blank" class="hover:text-blue-700 transition-colors">Office 365</a>
                 <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="hover:text-blue-700 transition-colors">Biblioteca</a>
                 <a href="https://cnci.blackboard.com/ultra/" target="_blank" 
-                   class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
-                    Blackboard
+                   class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 active:scale-95">
+                    Ir a Blackboard
                 </a>
                 <div id="admin-logged-info" class="hidden flex items-center gap-3 border-l pl-6 ml-2">
                     <span class="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-1 rounded">STAFF</span>
-                    <button onclick="window.logoutAdmin()" class="text-red-500 hover:underline">Salir</button>
+                    <button onclick="window.logoutAdmin()" class="text-red-500 hover:underline text-xs">Salir</button>
                 </div>
             </div>
 
-            <button onclick="window.toggleMobileMenu()" class="md:hidden text-slate-600 p-2">
-                <i class="fa-solid fa-bars-staggered text-2xl"></i>
+            <button onclick="window.toggleMobileMenu()" class="md:hidden text-slate-600 p-2 relative z-50">
+                <i id="menu-icon" class="fa-solid fa-bars-staggered text-2xl"></i>
             </button>
         </div>
 
-        <div id="mobile-menu" class="fixed inset-x-0 top-20 bg-white border-b shadow-xl p-6 flex flex-col gap-4 md:hidden closed z-40">
-            <a href="https://www.office.com/" target="_blank" class="py-3 border-b font-semibold text-slate-600">Office 365</a>
-            <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="py-3 border-b font-semibold text-slate-600">Biblioteca</a>
-            <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="py-4 bg-blue-600 text-white text-center rounded-xl font-bold">Ir a Blackboard</a>
+        <div id="mobile-menu" class="fixed inset-x-0 top-0 pt-24 bg-white border-b shadow-2xl p-6 flex flex-col gap-4 md:hidden">
+            <a href="https://www.office.com/" target="_blank" class="py-4 border-b font-bold text-slate-700 text-lg">Office 365</a>
+            <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="py-4 border-b font-bold text-slate-700 text-lg">Biblioteca</a>
+            <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="mt-4 py-5 bg-blue-600 text-white text-center rounded-2xl font-black text-xl shadow-lg">Blackboard</a>
         </div>
     </nav>
 
-    <main id="view-client" class="flex-grow animate__animated animate__fadeIn">
-        <section class="hero-gradient text-white py-16 md:py-24 px-6 relative overflow-hidden">
-            <div class="max-w-4xl mx-auto text-center relative z-10">
-                <h1 class="text-3xl md:text-5xl font-extrabold mb-4 animate__animated animate__fadeInDown">
-                    ¿Cómo podemos ayudarte?
+    <main id="view-client" class="flex-grow">
+        <section class="hero-gradient text-white pt-20 pb-32 px-6 overflow-hidden">
+            <div class="max-w-4xl mx-auto text-center relative z-10 animate__animated animate__fadeIn">
+                <span class="inline-block bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-6 border border-white/20">Portal de Autoservicio</span>
+                <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                    ¿En qué podemos <br><span class="text-blue-300">orientarte</span> hoy?
                 </h1>
-                <p class="text-blue-100 text-base md:text-lg mb-10 opacity-90 font-light px-4">
-                    Busca tutoriales, procesos de titulación, becas y más.
+                <p class="text-blue-100 text-lg md:text-xl mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+                    Resuelve tus dudas sobre procesos académicos, plataformas y servicios universitarios en segundos.
                 </p>
                 
-                <div class="max-w-2xl mx-auto relative group px-2">
-                    <i class="fa-solid fa-search absolute left-8 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                <div class="max-w-2xl mx-auto relative group">
+                    <div class="absolute inset-0 bg-blue-400/20 blur-2xl group-hover:bg-blue-400/30 transition-all rounded-3xl"></div>
+                    <i class="fa-solid fa-search absolute left-8 top-1/2 -translate-y-1/2 text-slate-400 text-xl"></i>
                     <input type="text" id="search-input" oninput="window.handleSearch(event)" 
-                        placeholder="Escribe tu pregunta aquí..." 
-                        class="w-full pl-14 pr-6 py-5 rounded-2xl border-0 shadow-2xl focus:ring-4 focus:ring-blue-400/30 outline-none text-gray-800 text-base transition-all">
+                        placeholder="Busca por palabra clave (ej. becas, titulación)..." 
+                        class="w-full pl-16 pr-8 py-6 rounded-2xl border-0 shadow-2xl focus:ring-4 focus:ring-blue-400/40 outline-none text-gray-800 text-lg transition-all relative z-10">
                 </div>
             </div>
         </section>
 
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 filters-container pb-24">
-            <div class="flex overflow-x-auto no-scrollbar gap-3 mb-10 pb-4 justify-start md:justify-center" id="categories-container"></div>
-            <div id="faqs-container" class="space-y-4 md:space-y-6"></div>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 -mt-16 pb-24 relative z-20">
+            <div class="flex overflow-x-auto no-scrollbar gap-3 mb-12 pb-4 justify-start md:justify-center animate__animated animate__fadeInUp animate__delay-1s" id="categories-container"></div>
+            
+            <div id="faqs-container" class="space-y-6"></div>
+
+            <!-- Paginación -->
+            <div id="pagination-controls" class="mt-16 flex justify-center items-center gap-3 animate__animated animate__fadeIn"></div>
         </div>
     </main>
 
     <!-- Vista Admin -->
-    <main id="view-admin" class="flex-grow bg-slate-50 hidden-view pb-24 animate__animated animate__fadeIn">
+    <main id="view-admin" class="flex-grow bg-slate-50 hidden-view pb-24">
         <div class="max-w-7xl mx-auto px-4 py-10">
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Panel de Control</h2>
-                    <p class="text-slate-500 text-sm">Administra el conocimiento institucional</p>
+                    <h2 class="text-3xl font-black text-slate-800">Panel Universitario</h2>
+                    <p class="text-slate-500 font-medium">Gestión de base de conocimientos CNCI</p>
                 </div>
                 <div class="flex bg-white p-1 rounded-2xl shadow-sm border w-full lg:w-auto overflow-x-auto">
-                    <button onclick="window.switchAdminTab('dashboard')" id="tab-btn-dashboard" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Dashboard</button>
-                    <button onclick="window.switchAdminTab('metrics')" id="tab-btn-metrics" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Métricas</button>
-                    <button onclick="window.switchAdminTab('faqs')" id="tab-btn-faqs" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">FAQs</button>
-                    <button onclick="window.switchAdminTab('categories')" id="tab-btn-categories" class="flex-1 lg:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all">Estructura</button>
+                    <button onclick="window.switchAdminTab('dashboard')" id="tab-btn-dashboard" class="flex-1 lg:flex-none px-8 py-3 rounded-xl text-xs font-black transition-all">Dashboard</button>
+                    <button onclick="window.switchAdminTab('metrics')" id="tab-btn-metrics" class="flex-1 lg:flex-none px-8 py-3 rounded-xl text-xs font-black transition-all">Sesiones</button>
+                    <button onclick="window.switchAdminTab('faqs')" id="tab-btn-faqs" class="flex-1 lg:flex-none px-8 py-3 rounded-xl text-xs font-black transition-all">Preguntas</button>
+                    <button onclick="window.switchAdminTab('categories')" id="tab-btn-categories" class="flex-1 lg:flex-none px-8 py-3 rounded-xl text-xs font-black transition-all">Estructura</button>
                 </div>
             </div>
 
-            <!-- Tab Dashboard -->
-            <div id="admin-tab-dashboard">
-                <!-- Filtros Dashboard -->
-                <div class="bg-white p-6 rounded-3xl shadow-sm border mb-8 flex flex-wrap gap-4 items-end">
-                    <div class="flex-1 min-w-[200px] space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Categoría</label>
-                        <select id="dash-filter-cat" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"></select>
-                    </div>
-                    <div class="flex-1 min-w-[200px] space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Área</label>
-                        <select id="dash-filter-area" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"></select>
-                    </div>
-                    <div class="flex-1 min-w-[150px] space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Desde</label>
-                        <input type="date" id="dash-filter-start" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex-1 min-w-[150px] space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Hasta</label>
-                        <input type="date" id="dash-filter-end" onchange="window.updateCharts()" class="w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <button onclick="window.resetDashFilters()" class="px-4 py-2.5 text-blue-600 font-bold text-xs">Reset</button>
-                </div>
-
-                <div class="grid grid-cols-1 gap-8">
-                    <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 min-h-[450px]">
-                        <h3 class="font-bold text-slate-700 mb-8 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-eye text-blue-500"></i> Top 10 FAQs más consultadas (Aperturas)
+            <!-- Dashboard Académico -->
+            <div id="admin-tab-dashboard" class="animate__animated animate__fadeIn">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-slate-100">
+                        <h3 class="font-black text-slate-800 mb-8 flex items-center gap-3">
+                            <i class="fa-solid fa-chart-line text-blue-600"></i> FAQs con mayor apertura
                         </h3>
-                        <div class="h-[400px]">
+                        <div class="chart-container">
                             <canvas id="chartTopClicks"></canvas>
                         </div>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-100 min-h-[450px]">
-                        <h3 class="font-bold text-slate-700 mb-8 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-thumbs-up text-orange-500"></i> Top 10 FAQs con mejor valoración (Likes)
+                    <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-slate-100">
+                        <h3 class="font-black text-slate-800 mb-8 flex items-center gap-3">
+                            <i class="fa-solid fa-thumbs-up text-blue-600"></i> Top Likes (Valoradas)
                         </h3>
-                        <div class="h-[400px]">
+                        <div class="chart-container">
                             <canvas id="chartTopLikes"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab Métricas -->
-            <div id="admin-tab-metrics" class="hidden-view">
-                <div class="bg-white rounded-3xl shadow-premium border overflow-hidden">
-                    <div class="p-6 border-b flex flex-col md:flex-row justify-between items-center bg-slate-50/50 gap-4">
-                        <span class="font-bold text-slate-700">Bitácora de Accesos Globales</span>
-                        <div class="relative w-full md:w-80">
+            <!-- Métricas (Modificadas según solicitud) -->
+            <div id="admin-tab-metrics" class="hidden-view animate__animated animate__fadeIn">
+                <div class="bg-white rounded-[2rem] shadow-premium border overflow-hidden">
+                    <div class="p-8 border-b flex flex-col md:flex-row justify-between items-center bg-slate-50/50 gap-4">
+                        <div>
+                            <span class="font-black text-slate-800 text-lg uppercase tracking-tight">Registro Académico de Sesiones</span>
+                            <p class="text-xs text-slate-500 font-medium">Historial de accesos al portal de ayuda</p>
+                        </div>
+                        <div class="relative w-full md:w-64">
                             <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="metric-table-search" oninput="window.renderMetricsTable()" 
-                                placeholder="Filtrar por ciudad, estado o IP..." 
-                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-white outline-none text-xs focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="metric-filter" oninput="window.filterMetrics()" placeholder="Filtrar por ciudad/estado..." 
+                                class="w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none text-xs font-bold">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black">
+                            <thead class="bg-slate-100/80 text-[10px] uppercase text-slate-500 font-black">
                                 <tr>
-                                    <th class="px-6 py-4">Fecha/Hora</th>
-                                    <th class="px-6 py-4">Ciudad/Estado</th>
-                                    <th class="px-6 py-4">País</th>
-                                    <th class="px-6 py-4">Dirección IP</th>
+                                    <th class="px-8 py-5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="window.sortMetrics('date')">
+                                        Fecha <i class="fa-solid fa-sort sort-icon" id="sort-date"></i>
+                                    </th>
+                                    <th class="px-8 py-5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="window.sortMetrics('time')">
+                                        Hora <i class="fa-solid fa-sort sort-icon" id="sort-time"></i>
+                                    </th>
+                                    <th class="px-8 py-5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="window.sortMetrics('location')">
+                                        Ubicación (Ciudad/Estado) <i class="fa-solid fa-sort sort-icon" id="sort-location"></i>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="admin-metrics-table-body" class="divide-y divide-slate-100"></tbody>
@@ -230,23 +229,23 @@
                 </div>
             </div>
 
-            <!-- Tab FAQs -->
-            <div id="admin-tab-faqs" class="hidden-view">
-                <div class="bg-white rounded-3xl shadow-premium border overflow-hidden">
-                    <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
-                        <span class="font-bold text-slate-700">Listado de Respuestas</span>
-                        <button onclick="window.openFaqModal()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i> Nueva FAQ
+            <!-- FAQs Admin -->
+            <div id="admin-tab-faqs" class="hidden-view animate__animated animate__fadeIn">
+                <div class="bg-white rounded-[2rem] shadow-premium border overflow-hidden">
+                    <div class="p-8 border-b flex justify-between items-center bg-slate-50/50">
+                        <span class="font-black text-slate-800 text-lg uppercase tracking-tight">Banco de Conocimiento</span>
+                        <button onclick="window.openFaqModal()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg hover:bg-blue-700 transition-all">
+                            <i class="fa-solid fa-plus"></i> Crear FAQ
                         </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black">
+                            <thead class="bg-slate-100 text-[10px] uppercase text-slate-500 font-black">
                                 <tr>
-                                    <th class="px-6 py-4">Pregunta</th>
-                                    <th class="px-6 py-4 text-center">Likes</th>
-                                    <th class="px-6 py-4 text-center">Abrir (clics)</th>
-                                    <th class="px-6 py-4 text-right">Acción</th>
+                                    <th class="px-8 py-5">Contenido / Pregunta</th>
+                                    <th class="px-8 py-5 text-center">Likes</th>
+                                    <th class="px-8 py-5 text-center">Aperturas</th>
+                                    <th class="px-8 py-5 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-faqs-table-body" class="divide-y divide-slate-100"></tbody>
@@ -255,19 +254,23 @@
                 </div>
             </div>
 
-            <!-- Tab Estructura -->
-            <div id="admin-tab-categories" class="hidden-view grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-3xl shadow-premium border">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-slate-700 text-sm">Categorías</h3>
-                        <button onclick="window.openSimpleModal('category')" class="text-blue-600"><i class="fa-solid fa-plus-circle"></i></button>
+            <!-- Categorías Admin -->
+            <div id="admin-tab-categories" class="hidden-view grid grid-cols-1 md:grid-cols-2 gap-8 animate__animated animate__fadeIn">
+                <div class="bg-white p-8 rounded-[2rem] shadow-premium border">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-black text-slate-800 text-lg uppercase">Categorías</h3>
+                        <button onclick="window.openSimpleModal('category')" class="bg-blue-50 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
                     </div>
                     <ul id="admin-categories-list" class="divide-y text-sm"></ul>
                 </div>
-                <div class="bg-white p-6 rounded-3xl shadow-premium border">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-slate-700 text-sm">Áreas Académicas</h3>
-                        <button onclick="window.openSimpleModal('area')" class="text-blue-600"><i class="fa-solid fa-plus-circle"></i></button>
+                <div class="bg-white p-8 rounded-[2rem] shadow-premium border">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-black text-slate-800 text-lg uppercase">Responsables Académicos</h3>
+                        <button onclick="window.openSimpleModal('area')" class="bg-blue-50 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
                     </div>
                     <ul id="admin-areas-list" class="divide-y text-sm"></ul>
                 </div>
@@ -275,74 +278,85 @@
         </div>
     </main>
 
-    <footer class="bg-white border-t py-10 px-6 mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+    <footer class="bg-white border-t py-12 px-6 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
             <div class="text-center md:text-left">
-                <img class="h-6 opacity-30 mx-auto md:mx-0 grayscale" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png">
-                <p class="text-slate-400 text-[10px] mt-3 uppercase tracking-tighter">© 2024 Universidad Virtual CNCI. Todos los derechos reservados.</p>
+                <div class="flex items-center justify-center md:justify-start gap-3 grayscale opacity-40">
+                    <img class="h-6" src="https://i.ibb.co/m5QcyKWg/Logo-CNCI.png">
+                    <span class="font-bold text-slate-800">Centro de Ayuda CNCI</span>
+                </div>
+                <p class="text-slate-400 text-[10px] mt-4 uppercase font-bold tracking-[0.2em]">© 2024 Universidad Virtual CNCI. Formación de Líderes con Sentido Humano.</p>
             </div>
-            <button id="nav-admin-btn" onclick="window.showLoginModal()" class="text-slate-300 text-[10px] font-black uppercase hover:text-blue-600 transition-colors">
-                🔐 Acceso restringido
+            <button id="nav-admin-btn" onclick="window.showLoginModal()" class="text-slate-300 text-[10px] font-black uppercase hover:text-blue-600 transition-colors border-2 border-slate-100 px-6 py-2 rounded-full">
+                🔒 Acceso de Personal
             </button>
         </div>
     </footer>
 
     <!-- Modales -->
-    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center items-center hidden-view p-4">
-        <div class="bg-white rounded-3xl p-8 max-sm w-full shadow-2xl animate__animated animate__zoomIn">
-            <h3 class="text-xl font-bold text-slate-800 text-center mb-6">Personal CNCI</h3>
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex justify-center items-center hidden-view p-4">
+        <div class="bg-white rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl animate__animated animate__zoomIn">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-200 mb-4">
+                    <i class="fa-solid fa-user-shield text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Acceso Staff</h3>
+                <p class="text-slate-400 text-xs font-medium">Ingresa tus credenciales institucionales</p>
+            </div>
             <form onsubmit="window.handleLogin(event)" class="space-y-4">
-                <input type="email" id="login-email" placeholder="Correo institucional" required class="w-full px-5 py-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="password" id="login-password" placeholder="Contraseña" required class="w-full px-5 py-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Ingresar</button>
-                <button type="button" onclick="window.closeModal('modal-login')" class="w-full text-slate-400 text-xs font-medium">Volver</button>
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="email" id="login-email" placeholder="Usuario Institucional" required class="w-full pl-12 pr-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="password" id="login-password" placeholder="Contraseña" required class="w-full pl-12 pr-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all uppercase tracking-widest mt-4">Validar Ingreso</button>
+                <button type="button" onclick="window.closeModal('modal-login')" class="w-full text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-4">Cancelar</button>
             </form>
         </div>
     </div>
 
-    <div id="modal-faq" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex justify-center items-center hidden-view p-2 sm:p-4">
-        <div class="bg-white rounded-[2rem] p-6 sm:p-10 max-w-3xl w-full max-h-[95vh] overflow-y-auto shadow-2xl animate__animated animate__fadeInUp">
-            <h3 id="modal-faq-title" class="text-2xl font-bold text-slate-800 mb-6">Gestionar Respuesta</h3>
-            <form onsubmit="window.saveFaq(event)" class="space-y-5">
+    <!-- Modal FAQ Editor -->
+    <div id="modal-faq" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex justify-center items-center hidden-view p-4">
+        <div class="bg-white rounded-[3rem] p-8 md:p-12 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate__animated animate__slideInUp">
+            <h3 id="modal-faq-title" class="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tight">Gestionar Respuesta</h3>
+            <form onsubmit="window.saveFaq(event)" class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <input type="hidden" id="faq-id">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-400">Pregunta al Estudiante</label>
-                    <input type="text" id="faq-question" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-600">
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pregunta del Estudiante</label>
+                    <input type="text" id="faq-question" required class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 font-bold">
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400">Categoría</label>
-                        <select id="faq-category" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none"></select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400">Área Responsable</label>
-                        <select id="faq-area" required class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none"></select>
-                    </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Clasificación Académica</label>
+                    <select id="faq-category" required class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none font-bold text-slate-700"></select>
                 </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-slate-400">Respuesta Detallada</label>
-                    <div class="border rounded-xl overflow-hidden bg-white">
-                        <div class="bg-slate-50 p-2 border-b flex gap-1">
-                            <button type="button" onclick="document.execCommand('bold')" class="w-8 h-8 hover:bg-white rounded transition-all"><i class="fa-solid fa-bold"></i></button>
-                            <button type="button" onclick="document.execCommand('insertUnorderedList')" class="w-8 h-8 hover:bg-white rounded transition-all"><i class="fa-solid fa-list-ul"></i></button>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Departamento Responsable</label>
+                    <select id="faq-area" required class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none font-bold text-slate-700"></select>
+                </div>
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest text-blue-600">Cuerpo de la Respuesta</label>
+                    <div class="border-2 border-slate-50 rounded-3xl overflow-hidden bg-white shadow-sm">
+                        <div class="bg-slate-50/50 p-3 border-b flex gap-2">
+                            <button type="button" onclick="document.execCommand('bold')" class="w-10 h-10 hover:bg-white rounded-xl transition-all"><i class="fa-solid fa-bold text-slate-600"></i></button>
+                            <button type="button" onclick="document.execCommand('insertUnorderedList')" class="w-10 h-10 hover:bg-white rounded-xl transition-all"><i class="fa-solid fa-list-ul text-slate-600"></i></button>
                         </div>
-                        <div id="faq-answer-rte" contenteditable="true" class="p-5 min-h-[150px] outline-none text-slate-600 text-sm leading-relaxed"></div>
+                        <div id="faq-answer-rte" contenteditable="true" class="p-6 min-h-[180px] outline-none text-slate-600 text-sm leading-relaxed"></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400">Imagen de apoyo (URL)</label>
-                        <input type="url" id="faq-image" class="w-full px-5 py-3 bg-slate-50 border-0 rounded-xl outline-none text-sm">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-red-500">Código de Inserción (Embed) de YouTube</label>
-                        <textarea id="faq-video-embed" placeholder='Ej: <iframe ... src="https://www.youtube.com/embed/..." ...></iframe>' 
-                            class="w-full px-5 py-3 bg-red-50/30 border border-red-100 rounded-xl outline-none text-[11px] font-mono h-24"></textarea>
-                    </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Imagen / Infografía (URL)</label>
+                    <input type="url" id="faq-image" class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl outline-none text-xs">
                 </div>
-                <div class="flex justify-end gap-3 pt-4">
-                    <button type="button" onclick="window.closeModal('modal-faq')" class="px-6 py-2 text-slate-400 font-bold text-sm">Cerrar</button>
-                    <button type="submit" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-lg">Publicar FAQ</button>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-red-500 tracking-widest">Video Tutorial (Youtube Embed)</label>
+                    <input type="text" id="faq-video-embed" class="w-full px-6 py-4 bg-red-50/30 border-0 rounded-2xl outline-none text-xs" placeholder="<iframe... src='...'>">
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-4 pt-6">
+                    <button type="button" onclick="window.closeModal('modal-faq')" class="px-8 py-3 text-slate-400 font-black text-xs uppercase tracking-widest">Descartar</button>
+                    <button type="submit" class="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all uppercase tracking-widest">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -351,7 +365,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, addDoc, deleteDoc, query, limit, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC8jIUPHKmcKy7eO1aq6eS4ZJ6kfq4zrBo",
@@ -367,8 +381,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let faqsData = [], categoriesData = [], areasData = [], metricsData = [];
+        let faqsData = [], categoriesData = [], areasData = [], metricsData = [], filteredMetrics = [];
         let currentCategory = 'all', searchQuery = '', chartL, chartC;
+        let metricSort = { col: 'date', order: 'desc' };
+        
+        // Paginación
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
         const extractYouTubeId = (input) => {
             if (!input) return null;
@@ -382,25 +401,35 @@
         const showToast = (msg, type='success') => {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div');
-            t.className = `px-6 py-4 rounded-xl shadow-xl text-white text-xs font-bold animate__animated animate__fadeInRight ${type === 'success' ? 'bg-blue-600' : 'bg-red-500'}`;
+            t.className = `px-8 py-5 rounded-2xl shadow-2xl text-white text-[11px] font-black uppercase tracking-widest animate__animated animate__fadeInRight ${type === 'success' ? 'bg-blue-600' : 'bg-red-500'}`;
             t.innerHTML = msg;
             container.appendChild(t);
             setTimeout(() => { t.classList.replace('animate__fadeInRight', 'animate__fadeOutRight'); setTimeout(() => t.remove(), 500); }, 3000);
         };
 
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            const isActive = menu.classList.toggle('active');
+            icon.className = isActive ? 'fa-solid fa-xmark text-2xl' : 'fa-solid fa-bars-staggered text-2xl';
+            document.body.style.overflow = isActive ? 'hidden' : '';
+        };
+
+        // --- Analítica con Fallback ---
         async function trackSession() {
             try {
-                const res = await fetch('https://ipapi.co/json/');
-                const data = await res.json();
+                let geoData = { city: 'Desconocido', region: 'Desconocido' };
+                try {
+                    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+                    if (res.ok) geoData = await res.json();
+                } catch (e) { console.warn("Geo offline"); }
+
                 await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), {
-                    city: data.city || 'Desconocido',
-                    region: data.region || 'Desconocido',
-                    country: data.country_name || 'Desconocido',
-                    ip: data.ip || '0.0.0.0',
-                    timestamp: serverTimestamp(),
-                    userAgent: navigator.userAgent
+                    city: geoData.city || 'Desconocido',
+                    region: geoData.region || 'Desconocido',
+                    timestamp: serverTimestamp()
                 });
-            } catch (e) { console.error("Error tracking session", e); }
+            } catch (e) { console.error("Track err", e); }
         }
 
         onAuthStateChanged(auth, (user) => {
@@ -433,86 +462,113 @@
                 if(!document.getElementById('admin-tab-dashboard').classList.contains('hidden-view')) updateCharts();
             });
             onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), s => {
-                metricsData = s.docs.map(d => ({id: d.id, ...d.data()}));
-                metricsData.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                metricsData = s.docs.map(d => {
+                    const dt = d.data().timestamp?.toDate() || new Date();
+                    return {
+                        id: d.id,
+                        date: dt.toLocaleDateString('es-MX'),
+                        time: dt.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                        location: `${d.data().city}, ${d.data().region}`,
+                        rawTimestamp: dt.getTime()
+                    };
+                });
+                filteredMetrics = [...metricsData];
                 renderMetricsTable();
             });
         }
 
-        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderFAQs(); };
-        window.setCategory = (id) => { currentCategory = id; renderFAQs(); renderCategories(); };
+        // --- Funciones de Home ---
+        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); currentPage = 1; renderFAQs(); };
+        window.setCategory = (id) => { currentCategory = id; currentPage = 1; renderFAQs(); renderCategories(); };
+        window.goToPage = (p) => { currentPage = p; window.scrollTo({ top: 300, behavior: 'smooth' }); renderFAQs(); };
 
         function renderCategories() {
             const container = document.getElementById('categories-container');
-            const btnClass = (active) => `flex-shrink-0 px-5 py-2.5 rounded-xl text-[10px] font-black transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border hover:bg-slate-100 shadow-sm'}`;
-            let html = `<button onclick="window.setCategory('all')" class="${btnClass(currentCategory === 'all')}">TODOS</button>`;
-            categoriesData.forEach(c => html += `<button onclick="window.setCategory('${c.id}')" class="${btnClass(currentCategory === c.id)}">${c.name.toUpperCase()}</button>`);
+            const btnClass = (active) => `flex-shrink-0 px-6 py-3 rounded-2xl text-[10px] font-black transition-all uppercase tracking-widest ${active ? 'bg-blue-600 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border hover:bg-slate-50 shadow-sm'}`;
+            let html = `<button onclick="window.setCategory('all')" class="${btnClass(currentCategory === 'all')}">Todos</button>`;
+            categoriesData.forEach(c => html += `<button onclick="window.setCategory('${c.id}')" class="${btnClass(currentCategory === c.id)}">${c.name}</button>`);
             container.innerHTML = html;
         }
 
         function renderFAQs() {
             const container = document.getElementById('faqs-container');
+            const pagControls = document.getElementById('pagination-controls');
             const filtered = faqsData.filter(f => {
                 const matchCat = currentCategory === 'all' || f.categoryId === currentCategory;
-                const text = (f.question + f.answer).toLowerCase();
-                const matchSearch = !searchQuery || text.includes(searchQuery);
+                const matchSearch = !searchQuery || (f.question + f.answer).toLowerCase().includes(searchQuery);
                 return matchCat && matchSearch;
             });
 
-            if(!filtered.length) { container.innerHTML = '<div class="text-center py-20 text-slate-400 text-sm">No encontramos respuestas...</div>'; return; }
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-            container.innerHTML = filtered.map(f => {
+            if(!paginated.length) { 
+                container.innerHTML = '<div class="text-center py-24 text-slate-300 font-bold uppercase tracking-widest">No hay resultados para tu búsqueda</div>'; 
+                pagControls.innerHTML = '';
+                return; 
+            }
+
+            container.innerHTML = paginated.map((f, idx) => {
                 const isOpen = window.openedFaqId === f.id;
                 const vId = extractYouTubeId(f.videoUrl);
                 const area = areasData.find(a => a.id === f.areaId)?.name || 'General';
-                const cat = categoriesData.find(c => c.id === f.categoryId)?.name || 'Trámite';
 
                 return `
-                <div class="bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100/50">
-                    <button onclick="window.toggleFaq('${f.id}')" class="w-full text-left p-6 flex justify-between items-center group">
-                        <div class="flex items-center gap-4">
-                            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <i class="fa-solid fa-circle-question text-xs"></i>
+                <div class="bg-white rounded-[2.5rem] overflow-hidden shadow-premium border border-slate-100/50 faq-card animate__animated animate__fadeInUp" style="animation-delay: ${idx * 0.1}s">
+                    <button onclick="window.toggleFaq('${f.id}')" class="w-full text-left p-8 md:p-10 flex justify-between items-center group">
+                        <div class="flex items-center gap-6">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-graduation-cap text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 text-sm md:text-base">${f.question}</h3>
-                                ${f.clicks > 10 ? '<span class="text-[8px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded mt-1 inline-block uppercase tracking-wider">🔥 Popular</span>' : ''}
+                                <h3 class="font-black text-slate-800 text-base md:text-2xl leading-tight group-hover:text-blue-700 transition-colors">${f.question}</h3>
+                                <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">${area}</p>
                             </div>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-slate-300 text-xs transition-transform ${isOpen ? 'rotate-180' : ''}"></i>
+                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center transition-all ${isOpen ? 'rotate-180 bg-blue-600 text-white' : 'text-slate-300'}">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </div>
                     </button>
-                    <div class="overflow-hidden transition-all duration-300" style="max-height: ${isOpen ? 'auto' : '0'}; display: ${isOpen ? 'block' : 'none'}">
-                        <div class="px-6 pb-8 pt-2 border-t border-slate-50 faq-content">
-                            <div class="text-slate-600 text-sm leading-relaxed mb-4">${f.answer}</div>
-                            ${f.imageUrl ? `<img src="${f.imageUrl}" alt="Apoyo Visual" class="w-full">` : ''}
-                            ${vId ? `<div class="video-wrapper mt-4"><iframe src="https://www.youtube.com/embed/${vId}?rel=0" allowfullscreen></iframe></div>` : ''}
-                            <div class="mt-8 pt-6 border-t border-slate-50 flex flex-wrap justify-between items-center gap-4">
-                                <div class="space-y-1">
-                                    <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest">Área: ${area}</p>
-                                    <span class="tag-pill bg-blue-50 text-blue-600">${cat}</span>
+                    <div class="overflow-hidden transition-all duration-500" style="display: ${isOpen ? 'block' : 'none'}">
+                        <div class="px-8 md:px-28 pb-12 pt-4 border-t border-slate-50">
+                            <div class="text-slate-600 faq-answer-text leading-relaxed mb-8">${f.answer}</div>
+                            ${f.imageUrl ? `<img src="${f.imageUrl}" class="w-full rounded-3xl shadow-2xl mb-8">` : ''}
+                            ${vId ? `<div class="video-wrapper shadow-2xl"><iframe src="https://www.youtube.com/embed/${vId}" allowfullscreen></iframe></div>` : ''}
+                            <div class="mt-12 pt-8 border-t border-slate-100 flex flex-wrap justify-between items-center gap-6">
+                                <div class="flex gap-2">
+                                    <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest">Oficial</span>
                                 </div>
-                                <button onclick="window.handleLike(event, '${f.id}')" class="flex items-center gap-2 bg-slate-50 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all font-bold text-slate-400 group">
-                                    <i class="fa-solid fa-heart group-hover:text-red-500 ${f.likes>0?'text-red-400':''}"></i>
-                                    <span class="text-[10px]">${f.likes || 0}</span>
-                                </button>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] text-slate-400 font-black uppercase tracking-tighter">¿Resolvimos tu duda?</span>
+                                    <button onclick="window.handleLike(event, '${f.id}')" class="flex items-center gap-3 bg-slate-50 hover:bg-rose-50 px-6 py-3 rounded-2xl transition-all font-black text-slate-500 hover:text-rose-600 shadow-sm border border-transparent hover:border-rose-100 group">
+                                        <i class="fa-solid fa-heart group-hover:scale-125 transition-transform ${f.likes > 0 ? 'text-rose-500' : ''}"></i>
+                                        <span class="text-xs">${f.likes || 0}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>`;
             }).join('');
+
+            if(totalPages > 1) {
+                let pBtnHtml = `<button onclick="window.goToPage(${Math.max(1, currentPage - 1)})" class="w-10 h-10 flex items-center justify-center rounded-xl border text-slate-400" ${currentPage === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left text-[10px]"></i></button>`;
+                for(let i=1; i<=totalPages; i++) {
+                    pBtnHtml += `<button onclick="window.goToPage(${i})" class="w-10 h-10 flex items-center justify-center rounded-xl text-xs font-black ${currentPage === i ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border'}">${i}</button>`;
+                }
+                pBtnHtml += `<button onclick="window.goToPage(${Math.min(totalPages, currentPage + 1)})" class="w-10 h-10 flex items-center justify-center rounded-xl border text-slate-400" ${currentPage === totalPages ? 'disabled' : ''}><i class="fa-solid fa-chevron-right text-[10px]"></i></button>`;
+                pagControls.innerHTML = pBtnHtml;
+            } else pagControls.innerHTML = '';
         }
 
         window.toggleFaq = async (id) => { 
             const isOpening = window.openedFaqId !== id;
             window.openedFaqId = isOpening ? id : null; 
             renderFAQs();
-            if(isOpening) {
-                await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), { clicks: increment(1) });
-            }
+            if(isOpening) await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), { clicks: increment(1) });
         };
 
         window.handleLike = async (e, id) => { e.stopPropagation(); await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), { likes: increment(1) }); };
-        
         window.showLoginModal = () => document.getElementById('modal-login').classList.remove('hidden-view');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden-view');
         
@@ -523,155 +579,135 @@
                 window.closeModal('modal-login');
                 document.getElementById('view-client').classList.add('hidden-view');
                 document.getElementById('view-admin').classList.remove('hidden-view');
-                updateCharts();
-            } catch(e) { showToast("Error de acceso", "error"); }
+                showToast("Acceso Concedido");
+            } catch(e) { showToast("Error de Acceso", "error"); }
         };
 
         window.logoutAdmin = async () => { await signOut(auth); location.reload(); };
 
         window.switchAdminTab = (t) => {
             ['dashboard', 'metrics', 'faqs', 'categories'].forEach(id => {
-                const el = document.getElementById(`admin-tab-${id}`);
-                if (el) el.classList.toggle('hidden-view', id !== t);
+                const view = document.getElementById(`admin-tab-${id}`);
+                if(view) view.classList.toggle('hidden-view', id !== t);
                 const btn = document.getElementById(`tab-btn-${id}`);
-                if (btn) btn.className = `px-6 py-2 rounded-xl text-xs font-bold ${id === t ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`;
+                if(btn) btn.className = `px-8 py-3 rounded-xl text-xs font-black transition-all ${id === t ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-100'}`;
             });
             if(t === 'dashboard') setTimeout(updateCharts, 50);
         };
 
-        window.saveFaq = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('faq-id').value;
-            const data = {
-                question: document.getElementById('faq-question').value,
-                categoryId: document.getElementById('faq-category').value,
-                areaId: document.getElementById('faq-area').value,
-                answer: document.getElementById('faq-answer-rte').innerHTML,
-                imageUrl: document.getElementById('faq-image').value,
-                videoUrl: document.getElementById('faq-video-embed').value,
-                updatedAt: serverTimestamp()
-            };
-            if(id) await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), data);
-            else await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'), {...data, likes: 0, clicks: 0, createdAt: serverTimestamp()});
-            window.closeModal('modal-faq');
-            showToast("FAQ guardada correctamente");
+        // --- Gestión de Métricas (Filtro y Orden) ---
+        window.filterMetrics = () => {
+            const query = document.getElementById('metric-filter').value.toLowerCase();
+            filteredMetrics = metricsData.filter(m => m.location.toLowerCase().includes(query));
+            renderMetricsTable();
         };
 
-        function renderAdminTable() {
-            document.getElementById('admin-faqs-table-body').innerHTML = faqsData.map(f => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-semibold text-slate-700 text-xs">${f.question}</td>
-                    <td class="px-6 py-4 text-center"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-black">${f.likes || 0}</span></td>
-                    <td class="px-6 py-4 text-center"><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black">${f.clicks || 0}</span></td>
-                    <td class="px-6 py-4 text-right space-x-1">
-                        <button onclick="window.editFaq('${f.id}')" class="p-2 text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="window.deleteFaq('${f.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
-                    </td>
+        window.sortMetrics = (col) => {
+            metricSort.order = (metricSort.col === col && metricSort.order === 'asc') ? 'desc' : 'asc';
+            metricSort.col = col;
+
+            filteredMetrics.sort((a, b) => {
+                let valA = a[col], valB = b[col];
+                if(col === 'date') { valA = a.rawTimestamp; valB = b.rawTimestamp; }
+                if (valA < valB) return metricSort.order === 'asc' ? -1 : 1;
+                if (valA > valB) return metricSort.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            document.querySelectorAll('.sort-icon').forEach(i => i.classList.remove('active'));
+            document.getElementById(`sort-${col}`).classList.add('active');
+            renderMetricsTable();
+        };
+
+        function renderMetricsTable() {
+            const body = document.getElementById('admin-metrics-table-body');
+            if(!body) return;
+            body.innerHTML = filteredMetrics.map(m => `
+                <tr class="hover:bg-slate-50/50 transition-colors text-[11px]">
+                    <td class="px-8 py-5 font-bold text-slate-800">${m.date}</td>
+                    <td class="px-8 py-5 text-slate-500">${m.time}</td>
+                    <td class="px-8 py-5 font-black text-blue-700">${m.location}</td>
                 </tr>`).join('');
         }
 
-        window.renderMetricsTable = () => {
-            const search = document.getElementById('metric-table-search').value.toLowerCase();
-            const filtered = metricsData.filter(m => 
-                m.city.toLowerCase().includes(search) || 
-                m.region.toLowerCase().includes(search) || 
-                m.ip.toLowerCase().includes(search) ||
-                m.country.toLowerCase().includes(search)
-            );
-
-            document.getElementById('admin-metrics-table-body').innerHTML = filtered.slice(0, 100).map(m => {
-                const date = m.timestamp?.toDate() || new Date();
-                return `
-                <tr class="hover:bg-slate-50 text-[11px]">
-                    <td class="px-6 py-4 text-slate-600 font-medium">${date.toLocaleString('es-MX')}</td>
-                    <td class="px-6 py-4 font-bold text-slate-800">${m.city}, ${m.region}</td>
-                    <td class="px-6 py-4 text-slate-500">${m.country}</td>
-                    <td class="px-6 py-4 font-mono text-slate-400">${m.ip}</td>
-                </tr>`;
-            }).join('');
-        };
-
-        window.updateCharts = () => {
-            const catF = document.getElementById('dash-filter-cat').value;
-            const areaF = document.getElementById('dash-filter-area').value;
-            const startF = document.getElementById('dash-filter-start').value;
-            const endF = document.getElementById('dash-filter-end').value;
-
-            let filtered = faqsData.filter(f => {
-                const matchCat = catF === 'all' || f.categoryId === catF;
-                const matchArea = areaF === 'all' || f.areaId === areaF;
-                
-                let matchDate = true;
-                if(startF || endF) {
-                    const fDate = f.createdAt?.toDate() || new Date();
-                    if(startF && fDate < new Date(startF)) matchDate = false;
-                    if(endF && fDate > new Date(endF)) matchDate = false;
-                }
-                return matchCat && matchArea && matchDate;
-            });
-
-            const ctxL = document.getElementById('chartTopLikes'), ctxC = document.getElementById('chartTopClicks');
-            if(!ctxL || !ctxC) return;
+        // --- Gráficas Horizontales ---
+        function updateCharts() {
+            const ctxC = document.getElementById('chartTopClicks'), ctxL = document.getElementById('chartTopLikes');
+            if(!ctxC || !ctxL || faqsData.length === 0) return;
             
-            if(chartL) chartL.destroy();
             if(chartC) chartC.destroy();
+            if(chartL) chartL.destroy();
 
-            const topLikes = [...filtered].sort((a,b) => b.likes - a.likes).slice(0,10);
-            const topClicks = [...filtered].sort((a,b) => b.clicks - a.clicks).slice(0,10);
+            const topClicks = [...faqsData].sort((a,b) => b.clicks - a.clicks).slice(0, 5);
+            const topLikes = [...faqsData].sort((a,b) => b.likes - a.likes).slice(0, 5);
 
-            const chartConfig = (data, label, color) => ({
+            const commonOptions = {
+                indexAxis: 'y', // Convertir a Barras Horizontales
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+                }
+            };
+
+            chartC = new Chart(ctxC, {
                 type: 'bar',
                 data: {
-                    labels: data.map(x => x.question.length > 40 ? x.question.substring(0, 37) + '...' : x.question),
+                    labels: topClicks.map(x => x.question.substring(0, 20) + '...'),
                     datasets: [{
-                        label: label,
-                        data: data.map(x => (label === 'Likes' ? x.likes : x.clicks)),
-                        backgroundColor: color,
-                        borderRadius: 8,
-                        barThickness: 24
+                        label: 'Clics',
+                        data: topClicks.map(x => x.clicks),
+                        backgroundColor: '#2563eb',
+                        borderRadius: 12,
+                        barThickness: 25
                     }]
                 },
                 options: {
-                    indexAxis: 'y', // Barra horizontal para leer mejor los nombres
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...commonOptions,
                     plugins: {
-                        legend: { display: false },
-                        tooltip: { 
-                            backgroundColor: '#1e293b',
-                            titleFont: { family: 'Poppins', size: 12 },
-                            bodyFont: { family: 'Poppins', size: 11 },
-                            callbacks: {
-                                label: (context) => ` ${label}: ${context.parsed.x}`
-                            }
+                        ...commonOptions.plugins,
+                        afterDraw: (chart) => {
+                            const {ctx, data} = chart;
+                            ctx.save();
+                            ctx.font = 'bold 10px Poppins';
+                            ctx.fillStyle = '#1e293b';
+                            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                                ctx.fillText(data.datasets[0].data[index], bar.x + 10, bar.y + 5);
+                            });
                         }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                        y: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#475569' } }
                     }
                 }
             });
 
-            chartL = new Chart(ctxL, chartConfig(topLikes, 'Likes', '#f97316'));
-            chartC = new Chart(ctxC, chartConfig(topClicks, 'Aperturas', '#2563eb'));
-        };
+            chartL = new Chart(ctxL, {
+                type: 'bar',
+                data: {
+                    labels: topLikes.map(x => x.question.substring(0, 20) + '...'),
+                    datasets: [{
+                        label: 'Likes',
+                        data: topLikes.map(x => x.likes),
+                        backgroundColor: '#ff8500',
+                        borderRadius: 12,
+                        barThickness: 25
+                    }]
+                },
+                options: commonOptions
+            });
+        }
 
-        window.resetDashFilters = () => {
-            document.getElementById('dash-filter-cat').value = 'all';
-            document.getElementById('dash-filter-area').value = 'all';
-            document.getElementById('dash-filter-start').value = '';
-            document.getElementById('dash-filter-end').value = '';
-            updateCharts();
-        };
-
+        // --- Gestión FAQs Admin ---
         window.openFaqModal = () => {
             document.getElementById('faq-id').value = '';
             document.getElementById('faq-question').value = '';
             document.getElementById('faq-answer-rte').innerHTML = '';
             document.getElementById('faq-image').value = '';
             document.getElementById('faq-video-embed').value = '';
-            document.getElementById('modal-faq-title').innerText = 'Publicar Respuesta';
+            document.getElementById('modal-faq-title').innerText = 'Nueva FAQ';
             document.getElementById('modal-faq').classList.remove('hidden-view');
         };
 
@@ -684,53 +720,70 @@
             document.getElementById('faq-answer-rte').innerHTML = f.answer;
             document.getElementById('faq-image').value = f.imageUrl || '';
             document.getElementById('faq-video-embed').value = f.videoUrl || '';
+            document.getElementById('modal-faq-title').innerText = 'Editar FAQ';
             document.getElementById('modal-faq').classList.remove('hidden-view');
         };
 
-        window.deleteFaq = async (id) => {
-            if(confirm('¿Eliminar esta FAQ de forma permanente?')) {
-                await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id));
-                showToast("FAQ eliminada", "error");
-            }
+        window.saveFaq = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('faq-id').value;
+            const data = {
+                question: document.getElementById('faq-question').value,
+                categoryId: document.getElementById('faq-category').value,
+                areaId: document.getElementById('faq-area').value,
+                answer: document.getElementById('faq-answer-rte').innerHTML,
+                imageUrl: document.getElementById('faq-image').value,
+                videoUrl: document.getElementById('faq-video-embed').value
+            };
+            if(id) await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id), data);
+            else await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'), {...data, likes: 0, clicks: 0});
+            
+            showToast("Guardado con éxito");
+            window.closeModal('modal-faq');
         };
 
-        window.updateSelects = () => {
-            const selects = [
-                {id: 'faq-category', data: categoriesData, default: false},
-                {id: 'faq-area', data: areasData, default: false},
-                {id: 'dash-filter-cat', data: categoriesData, default: true},
-                {id: 'dash-filter-area', data: areasData, default: true}
-            ];
+        function renderAdminTable() {
+            const body = document.getElementById('admin-faqs-table-body');
+            if(!body) return;
+            body.innerHTML = faqsData.map(f => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-8 py-5 font-bold text-slate-700 text-xs">${f.question}</td>
+                    <td class="px-8 py-5 text-center"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black">${f.likes || 0}</span></td>
+                    <td class="px-8 py-5 text-center"><span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-lg text-[10px] font-black">${f.clicks || 0}</span></td>
+                    <td class="px-8 py-5 text-right space-x-2">
+                        <button onclick="window.editFaq('${f.id}')" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-lg transition-all"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="window.deleteFaq('${f.id}')" class="text-red-400 hover:bg-red-50 w-8 h-8 rounded-lg transition-all"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
 
-            selects.forEach(s => {
-                const el = document.getElementById(s.id);
-                if(el) {
-                    let html = s.default ? '<option value="all">Todas</option>' : '';
-                    html += s.data.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-                    el.innerHTML = html;
-                }
-            });
+        window.deleteFaq = async (id) => { if(confirm('¿Confirmas eliminar esta información académica?')) await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id)); };
+        
+        window.updateSelects = () => {
+            const c = document.getElementById('faq-category'), a = document.getElementById('faq-area');
+            if(c) c.innerHTML = categoriesData.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+            if(a) a.innerHTML = areasData.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
         };
 
         window.openSimpleModal = (type) => {
-            const name = prompt(`Nombre del nuevo elemento (${type}):`);
+            const name = prompt(`Nombre de la nueva ${type === 'category' ? 'categoría' : 'área'}:`);
             if(name) addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', type === 'category' ? 'categories' : 'areas'), { name });
         };
 
         window.renderSimple = () => {
-            document.getElementById('admin-categories-list').innerHTML = categoriesData.map(c => `
-                <li class="py-3 flex justify-between items-center group"><span class="text-slate-600 font-medium">${c.name}</span> 
-                <button onclick="window.delSimple('categories','${c.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
-            document.getElementById('admin-areas-list').innerHTML = areasData.map(a => `
-                <li class="py-3 flex justify-between items-center group"><span class="text-slate-600 font-medium">${a.name}</span> 
-                <button onclick="window.delSimple('areas','${a.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
+            const catL = document.getElementById('admin-categories-list'), areaL = document.getElementById('admin-areas-list');
+            if(catL) catL.innerHTML = categoriesData.map(c => `<li class="py-4 flex justify-between items-center group font-bold text-slate-600">${c.name} <button onclick="window.delSimple('categories','${c.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
+            if(areaL) areaL.innerHTML = areasData.map(a => `<li class="py-4 flex justify-between items-center group font-bold text-slate-600">${a.name} <button onclick="window.delSimple('areas','${a.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i class="fa-solid fa-trash-can"></i></button></li>`).join('');
         };
-        window.delSimple = async (col, id) => { if(confirm('¿Seguro? Se podrían ver afectadas las FAQs vinculadas.')) await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', col, id)); };
 
-        window.toggleMobileMenu = () => {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('closed');
-        };
+        window.delSimple = async (col, id) => { if(confirm('¿Eliminar elemento?')) await deleteDoc(doc(db, 'artifacts', customAppId, 'public', 'data', col, id)); };
+
+        // Animación de scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
 
         signInAnonymously(auth);
     </script>
