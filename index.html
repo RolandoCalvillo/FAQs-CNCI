@@ -225,11 +225,34 @@
             <!-- Pestaña: Sesiones -->
             <div id="admin-tab-metrics" class="animate__animated animate__fadeIn hidden-view">
                 <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-slate-100">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                        <h3 class="font-black text-slate-800 text-xl">Registro de Sesiones</h3>
-                        <div class="relative w-full sm:w-64">
-                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="metric-filter" oninput="window.filterMetrics()" placeholder="Filtrar sesiones..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 text-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h3 class="font-black text-slate-800 text-xl">Registro de Sesiones</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Carga de datos bajo demanda (Optimizado)</p>
+                        </div>
+                        <button onclick="window.exportSessionsCSV()" class="bg-green-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-md flex items-center">
+                            <i class="fa-solid fa-file-csv mr-2"></i> EXPORTAR CSV
+                        </button>
+                    </div>
+
+                    <!-- Filtros para la consulta -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Fecha Inicio</label>
+                            <input type="date" id="session-start" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 text-sm text-slate-700 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Fecha Fin</label>
+                            <input type="date" id="session-end" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 text-sm text-slate-700 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Ciudad (Filtro local)</label>
+                            <input type="text" id="session-city" placeholder="Ej. Monterrey" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 text-sm text-slate-700 font-medium">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="window.loadAdminSessions()" class="w-full bg-cnciBlue text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center">
+                                <i class="fa-solid fa-cloud-arrow-down mr-2"></i> CARGAR DATOS
+                            </button>
                         </div>
                     </div>
                     
@@ -243,7 +266,7 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-metrics-table-body" class="divide-y divide-slate-100">
-                                <!-- Filas dinámicas -->
+                                <tr><td colspan="3" class="p-10 text-center text-slate-500 font-medium"><i class="fa-solid fa-filter mr-2"></i> Selecciona las fechas y haz clic en "Cargar Datos".</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -606,7 +629,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, getDocs, doc, updateDoc, increment, addDoc, deleteDoc, serverTimestamp, writeBatch, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, updateDoc, increment, addDoc, deleteDoc, serverTimestamp, writeBatch, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Variables de Estado Globales
         let faqsData = [];
@@ -736,22 +759,38 @@
 
             if (tabId === 'dashboard') {
                 window.updateCharts();
-            } else if (tabId === 'metrics') {
-                // Solo cargar sesiones si hacemos clic aquí
-                window.loadAdminSessions();
             }
+            // ¡Ya no cargamos sesiones automáticamente aquí! Ahorramos lecturas.
         };
 
         window.loadAdminSessions = async () => {
             const tbody = document.getElementById('admin-metrics-table-body');
-            tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando las últimas 100 sesiones...</td></tr>`;
+            const startDateStr = document.getElementById('session-start').value;
+            const endDateStr = document.getElementById('session-end').value;
+            const cityFilter = document.getElementById('session-city').value.toLowerCase().trim();
+
+            tbody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Consultando base de datos...</td></tr>`;
             
             try {
-                // LIMITAMOS a 100 para no agotar el plan gratuito
-                const q = query(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), orderBy('timestamp', 'desc'), limit(100));
+                let qConstraints = [];
+                
+                // Filtramos por fecha directamente en Firebase (ahorra descargas y cobros)
+                if (startDateStr) {
+                    const startD = new Date(startDateStr + 'T00:00:00');
+                    qConstraints.push(where('timestamp', '>=', startD));
+                }
+                if (endDateStr) {
+                    const endD = new Date(endDateStr + 'T23:59:59');
+                    qConstraints.push(where('timestamp', '<=', endD));
+                }
+                
+                qConstraints.push(orderBy('timestamp', 'desc'));
+                qConstraints.push(limit(1000)); // Límite máximo de seguridad por consulta
+
+                const q = query(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), ...qConstraints);
                 const snapshot = await getDocs(q);
 
-                metricsData = snapshot.docs.map(doc => {
+                let fetchedData = snapshot.docs.map(doc => {
                     const data = doc.data();
                     let dateObj = data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : new Date();
                     return {
@@ -759,14 +798,58 @@
                         date: dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }),
                         time: dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
                         location: `${data.city || 'N/A'}, ${data.region || 'N/A'}`,
+                        cityStr: (data.city || '').toLowerCase(),
                         rawTimestamp: dateObj.getTime()
                     };
                 });
-                window.filterMetrics(); 
+
+                // Filtrado local en memoria para la ciudad (evitamos pagar índices complejos)
+                if (cityFilter) {
+                    fetchedData = fetchedData.filter(m => m.cityStr.includes(cityFilter));
+                }
+
+                metricsData = fetchedData;
+                filteredMetrics = [...metricsData];
+                
+                if (filteredMetrics.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-500 font-medium">No se encontraron sesiones en esas fechas.</td></tr>`;
+                    window.showToast('Búsqueda completada sin resultados.', 'info');
+                } else {
+                    window.showToast(`Se cargaron ${filteredMetrics.length} sesiones.`, 'success');
+                    window.renderMetricsTable();
+                }
+                
             } catch (error) {
                 console.error("Error cargando sesiones:", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-red-500">Error al cargar datos estadísticos.</td></tr>`;
+                window.showToast('Error al cargar datos estadísticos.', 'error');
+                tbody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-red-500">Error de conexión. Intenta nuevamente.</td></tr>`;
             }
+        };
+
+        window.exportSessionsCSV = () => {
+            if (!filteredMetrics || filteredMetrics.length === 0) {
+                window.showToast('Primero carga datos para poder exportarlos.', 'error');
+                return;
+            }
+
+            const headers = "Fecha,Hora,Ubicacion\n";
+            const rows = filteredMetrics.map(m => {
+                const cleanLoc = String(m.location).replace(/"/g, '""');
+                return `"${m.date}","${m.time}","${cleanLoc}"`;
+            });
+
+            const csvContent = headers + rows.join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Reporte_Sesiones_${new Date().toLocaleDateString('es-MX').replace(/\//g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            window.showToast('Reporte descargado correctamente.', 'success');
         };
 
         // Lógica de Renderizado y Búsqueda (Cliente)
