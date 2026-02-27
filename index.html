@@ -606,7 +606,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, addDoc, deleteDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, updateDoc, increment, addDoc, deleteDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Variables de Estado Globales
         let faqsData = [];
@@ -852,27 +852,53 @@
             renderFAQs();
 
             if (isOpening) {
-                try {
-                    const faqRef = doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id);
-                    await updateDoc(faqRef, { clicks: increment(1) });
-                } catch (error) {
-                    console.error("Error al registrar click en FAQ:", error);
+                // ANTI-ABUSO: Registrar vista solo una vez por sesión en la memoria del navegador
+                let viewedFaqs = JSON.parse(sessionStorage.getItem('cnci_viewed_faqs') || '[]');
+                if (!viewedFaqs.includes(id)) {
+                    viewedFaqs.push(id);
+                    sessionStorage.setItem('cnci_viewed_faqs', JSON.stringify(viewedFaqs));
+                    
+                    try {
+                        const faqRef = doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id);
+                        await updateDoc(faqRef, { clicks: increment(1) });
+                    } catch (error) {
+                        console.error("Error al registrar click en FAQ:", error);
+                    }
                 }
             }
         };
-
         window.handleLike = async (e, id) => {
             e.stopPropagation(); 
+            
+            // ANTI-ABUSO: Verificar si ya dio like en este dispositivo (localStorage)
+            let likedFaqs = JSON.parse(localStorage.getItem('cnci_liked_faqs') || '[]');
+            if (likedFaqs.includes(id)) {
+                // Si ya existe, le mostramos un mensajito pero abortamos la petición a Firebase
+                window.showToast('Ya has valorado esta pregunta anteriormente. ¡Gracias!', 'info');
+                return;
+            }
+
             try {
                 const faqRef = doc(db, 'artifacts', customAppId, 'public', 'data', 'faqs', id);
                 await updateDoc(faqRef, { likes: increment(1) });
+                
+                // Guardar en localStorage para bloquear futuros clics permanentemente en este PC/Celular
+                likedFaqs.push(id);
+                localStorage.setItem('cnci_liked_faqs', JSON.stringify(likedFaqs));
+
+                // Actualizar la memoria local al instante para que el contador suba sin recargar
+                const faqIndex = faqsData.findIndex(f => f.id === id);
+                if (faqIndex > -1) {
+                    faqsData[faqIndex].likes = (faqsData[faqIndex].likes || 0) + 1;
+                    renderFAQs(); 
+                }
+
                 window.showToast('¡Gracias por tu valoración!', 'success');
             } catch (error) {
                 console.error("Error al registrar like:", error);
                 window.showToast('Error al registrar valoración', 'error');
             }
         };
-
         // LÓGICA ESTRUCTURA (Categorías Avanzadas y Áreas Simples)
         window.renderSimple = () => {
             const catList = document.getElementById('admin-categories-list');
@@ -1464,63 +1490,84 @@
             reader.readAsText(file, "UTF-8");
         };
 
-        // Listeners en Tiempo Real (onSnapshot)
-        async function setupListeners() {
-            window.listenersActive = true;
+        // LÓGICA DE CARGA: Admin (Tiempo Real) vs Cliente (Caché)
+        window.listenersActive = false;
 
-            const categoriesRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'categories');
-            onSnapshot(categoriesRef, (snapshot) => {
-                categoriesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        async function loadClientDataWithCache() {
+            const cacheKey = 'cnci_faq_data_v1';
+            const cacheTimeKey = 'cnci_faq_time_v1';
+            const TTL = 2 * 60 * 60 * 1000; // 2 horas de vida
+            const now = new Date().getTime();
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+
+            // 1. Intentar cargar desde memoria si es válido
+            if (cachedTime && (now - cachedTime < TTL)) {
+                console.log("Cargando desde Caché Local (Ahorrando lecturas en Firebase) 🚀");
+                const cachedData = JSON.parse(localStorage.getItem(cacheKey));
+                categoriesData = cachedData.categories;
+                areasData = cachedData.areas;
+                faqsData = cachedData.faqs;
                 renderCategories();
-                window.renderSimple(); 
-                window.updateSelects(); 
-                window.filterAdminFaqs(); 
-            });
-
-            const areasRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'areas');
-            onSnapshot(areasRef, (snapshot) => {
-                areasData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                window.renderSimple();
-                window.updateSelects(); 
-                window.filterAdminFaqs(); 
-            });
-
-            const faqsRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs');
-            onSnapshot(faqsRef, (snapshot) => {
-                faqsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderFAQs();
-                window.filterAdminFaqs(); 
-                
-                const dashView = document.getElementById('admin-tab-dashboard');
-                if (dashView && !dashView.classList.contains('hidden-view')) {
-                    window.updateCharts();
-                }
+                return;
+            }
+
+            // 2. Si no hay caché o expiró, consumir Firebase
+            console.log("Caché expirado o inexistente. Consultando Firebase... ☁️");
+            try {
+                const [catSnap, areaSnap, faqSnap] = await Promise.all([
+                    getDocs(collection(db, 'artifacts', customAppId, 'public', 'data', 'categories')),
+                    getDocs(collection(db, 'artifacts', customAppId, 'public', 'data', 'areas')),
+                    getDocs(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'))
+                ]);
+
+                categoriesData = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                areasData = areaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                faqsData = faqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 3. Guardar nueva data en caché
+                localStorage.setItem(cacheKey, JSON.stringify({ categories: categoriesData, areas: areasData, faqs: faqsData }));
+                localStorage.setItem(cacheTimeKey, now.toString());
+
+                renderCategories();
+                renderFAQs();
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+            }
+        }
+
+        async function setupAdminListeners() {
+            window.listenersActive = true;
+            console.log("Admin logueado: Activando tiempo real 🟢");
+
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'categories'), (snapshot) => {
+                categoriesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderCategories(); window.renderSimple(); window.updateSelects(); window.filterAdminFaqs(); 
             });
 
-            const sessionsRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions');
-            onSnapshot(sessionsRef, (snapshot) => {
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'areas'), (snapshot) => {
+                areasData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.renderSimple(); window.updateSelects(); window.filterAdminFaqs(); 
+            });
+
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'faqs'), (snapshot) => {
+                faqsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFAQs(); window.filterAdminFaqs(); 
+                if (document.getElementById('admin-tab-dashboard') && !document.getElementById('admin-tab-dashboard').classList.contains('hidden-view')) window.updateCharts();
+            });
+
+            onSnapshot(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'), (snapshot) => {
                 metricsData = snapshot.docs.map(doc => {
                     const data = doc.data();
-                    let dateStr = 'N/A';
-                    let timeStr = 'N/A';
-                    let rawTs = 0;
-
-                    if (data.timestamp) {
-                        const dateObj = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
-                        dateStr = dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        timeStr = dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-                        rawTs = dateObj.getTime();
-                    }
-
+                    let dateObj = data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : new Date();
                     return {
                         id: doc.id,
-                        date: dateStr,
-                        time: timeStr,
-                        location: `${data.city}, ${data.region}`,
-                        rawTimestamp: rawTs
+                        date: dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                        time: dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                        location: `${data.city || 'N/A'}, ${data.region || 'N/A'}`,
+                        rawTimestamp: dateObj.getTime()
                     };
                 });
-                
                 window.filterMetrics(); 
             });
         }
@@ -1553,17 +1600,16 @@
                     });
                 }
             }
-
-            // Iniciar Listeners
-            if (!window.listenersActive) {
-                setupListeners();
-                
-                if (!user || user.isAnonymous) {
-                    trackSession();
-                }
+            // Iniciar Lógica de Carga según perfil
+            if (user && !user.isAnonymous) {
+                // Es Admin: Tiempo real
+                if (!window.listenersActive) setupAdminListeners();
+            } else {
+                // Es Cliente Anónimo: Caché
+                loadClientDataWithCache();
+                trackSession();
             }
         });
-
     </script>
 </body>
 </html>
