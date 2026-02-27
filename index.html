@@ -108,7 +108,7 @@
                 <!-- Navbar Derecha -->
                 <div class="flex items-center gap-5">
                     <a href="https://www.office.com/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Office 365</a>
-                    <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Odilo Biblioteca</a>
+                    <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Biblioteca Virtual</a>
                     <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Blackboard</a>
                     <a href="#" class="block md:hidden text-gray-600 hover:text-cnciBlue transition-colors duration-200"><i class="fa-solid fa-bars text-xl"></i></a>
                     
@@ -160,9 +160,27 @@
                 <button class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white text-slate-500 border border-slate-200 hover:border-cnciBlue hover:text-cnciBlue transition-all shadow-sm">2</button>
                 <button class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white text-slate-500 border border-slate-200 hover:border-cnciBlue hover:text-cnciBlue transition-all shadow-sm">3</button>
             </div>
-
+            <!-- NUEVA SECCIÓN: Directorio CNCI -->
+            <section class="mt-24 mb-10 w-full max-w-5xl mx-auto animate__animated animate__fadeIn">
+                <div class="bg-white rounded-[2rem] shadow-premium border border-slate-100 p-8 md:p-12 text-center overflow-hidden relative">
+                    <!-- Decoración de fondo suave -->
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-50/50 rounded-bl-full -z-0"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 bg-slate-50 rounded-tr-full -z-0"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-cnciBlue mb-6 shadow-sm border border-blue-100">
+                            <i class="fa-solid fa-address-book text-3xl"></i>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight">Directorio CNCI</h2>
+                        <p class="text-slate-500 mb-10 max-w-2xl mx-auto font-medium text-lg">Encuentra rápidamente la información de contacto de nuestros diferentes departamentos para recibir la asistencia que necesitas.</p>
+                        
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white transition-transform duration-300 hover:shadow-xl group">
+                            <img src="https://i.ibb.co/RF36Vz7/Directorios-Departamentos-1.png" alt="Directorio de Departamentos" class="w-full h-auto object-cover">
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-
     </main>
 
     <!-- Vista Admin -->
@@ -345,14 +363,32 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white mt-auto border-t border-gray-200/60 py-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-sm text-gray-500 font-medium text-center sm:text-left">
-                © 2026 Universidad Virtual CNCI.
+    <footer class="bg-white mt-auto border-t border-gray-200/60 py-8 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)] relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            
+            <!-- 1. Copyright & Secret Login -->
+            <p class="text-sm text-gray-500 font-medium text-center md:text-left order-2 md:order-1 relative">
+                © 2026 Universidad Virtual CNCI
+                <!-- Este punto es el botón secreto de Login -->
+                <button id="footer-login-btn" onclick="window.showLoginModal()" class="cursor-default focus:outline-none" title="Staff Area">.</button>
             </p>
-            <button id="footer-login-btn" onclick="window.showLoginModal()" class="text-sm text-gray-500 hover:text-cnciNavy transition-colors duration-200 flex items-center gap-2 font-medium bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg border border-gray-200">
-                <i class="fa-solid fa-lock text-xs"></i> Acceso de Personal
-            </button>
+
+            <!-- 2. Redes Sociales CNCI -->
+            <div class="flex items-center gap-4 order-1 md:order-2">
+                <a href="[https://www.facebook.com/UniversidadVirtualCNCI/](https://www.facebook.com/UniversidadVirtualCNCI/)" target="_blank" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-[#1877F2] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1" title="Facebook">
+                    <i class="fa-brands fa-facebook-f text-lg"></i>
+                </a>
+                <a href="[https://www.instagram.com/universidadvirtualcnci/](https://www.instagram.com/universidadvirtualcnci/)" target="_blank" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-[#E4405F] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1" title="Instagram">
+                    <i class="fa-brands fa-instagram text-lg"></i>
+                </a>
+                <a href="[https://www.youtube.com/c/UniversidadVirtualCNCIoficial](https://www.youtube.com/c/UniversidadVirtualCNCIoficial)" target="_blank" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-[#FF0000] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1" title="YouTube">
+                    <i class="fa-brands fa-youtube text-lg"></i>
+                </a>
+                <a href="[https://mx.linkedin.com/school/universidad-cnci/](https://mx.linkedin.com/school/universidad-cnci/)" target="_blank" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-[#0A66C2] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1" title="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in text-lg"></i>
+                </a>
+            </div>
+
         </div>
     </footer>
 
