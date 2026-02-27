@@ -203,23 +203,125 @@
                 </div>
             </div>
 
-            <!-- Pestaña Dashboard (Gráficos) -->
+            <!-- Pestaña Dashboard (Analítica On-Demand) -->
             <div id="admin-tab-dashboard" class="animate__animated animate__fadeIn">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Tarjeta Top Clicks -->
-                    <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-slate-100 flex flex-col">
-                        <h3 class="font-black text-slate-800 text-lg mb-6">FAQs más visitadas</h3>
-                        <div class="chart-container relative h-[300px] w-full">
-                            <canvas id="chartTopClicks"></canvas>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- 1. Tendencia de Tráfico Histórico -->
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-premium flex flex-col border border-slate-100 h-full">
+                        <div class="mb-5">
+                            <h3 class="font-black text-slate-800 text-lg leading-tight">Tendencia de Tráfico Histórico</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Total de accesos por día en un periodo.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Inicio</label>
+                                <input type="date" id="chart1-start" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Fin</label>
+                                <input type="date" id="chart1-end" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex items-end gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+                                <button onclick="window.genChart1()" class="flex-1 sm:flex-none bg-cnciBlue text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center"><i class="fa-solid fa-play mr-1.5"></i> Generar</button>
+                                <button onclick="window.csvChart1()" class="flex-none bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:text-cnciBlue hover:border-cnciBlue transition-colors shadow-sm flex justify-center items-center" title="Exportar CSV"><i class="fa-solid fa-file-csv text-base"></i></button>
+                            </div>
+                        </div>
+                        <div class="relative h-[250px] md:h-[300px] w-full flex-grow flex flex-col justify-end">
+                            <div id="empty-chart1" class="absolute inset-0 flex flex-col items-center justify-center text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 z-10 transition-opacity">
+                                <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-300 mb-3 text-xl"><i class="fa-solid fa-chart-line"></i></div>
+                                <p class="text-xs font-medium text-slate-500 max-w-[200px]">Selecciona las fechas y haz clic en Generar.</p>
+                            </div>
+                            <canvas id="canvasChart1" class="hidden-view"></canvas>
                         </div>
                     </div>
-                    <!-- Tarjeta Top Likes -->
-                    <div class="bg-white p-8 rounded-[2rem] shadow-premium border border-slate-100 flex flex-col">
-                        <h3 class="font-black text-slate-800 text-lg mb-6">FAQs con más Likes</h3>
-                        <div class="chart-container relative h-[300px] w-full">
-                            <canvas id="chartTopLikes"></canvas>
+
+                    <!-- 2. Horarios de Mayor Demanda -->
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-premium flex flex-col border border-slate-100 h-full">
+                        <div class="mb-5">
+                            <h3 class="font-black text-slate-800 text-lg leading-tight">Horarios de Mayor Demanda</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Frecuencia de accesos por hora del día.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Inicio</label>
+                                <input type="date" id="chart2-start" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Fin</label>
+                                <input type="date" id="chart2-end" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex items-end gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+                                <button onclick="window.genChart2()" class="flex-1 sm:flex-none bg-cnciBlue text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center"><i class="fa-solid fa-play mr-1.5"></i> Generar</button>
+                                <button onclick="window.csvChart2()" class="flex-none bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:text-cnciBlue hover:border-cnciBlue transition-colors shadow-sm flex justify-center items-center" title="Exportar CSV"><i class="fa-solid fa-file-csv text-base"></i></button>
+                            </div>
+                        </div>
+                        <div class="relative h-[250px] md:h-[300px] w-full flex-grow flex flex-col justify-end">
+                            <div id="empty-chart2" class="absolute inset-0 flex flex-col items-center justify-center text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 z-10 transition-opacity">
+                                <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-300 mb-3 text-xl"><i class="fa-solid fa-clock"></i></div>
+                                <p class="text-xs font-medium text-slate-500 max-w-[200px]">Selecciona las fechas y haz clic en Generar.</p>
+                            </div>
+                            <canvas id="canvasChart2" class="hidden-view"></canvas>
                         </div>
                     </div>
+
+                    <!-- 3. Mapa Demográfico -->
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-premium flex flex-col border border-slate-100 h-full">
+                        <div class="mb-5">
+                            <h3 class="font-black text-slate-800 text-lg leading-tight">Mapa Demográfico (Top 10)</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Distribución de ciudades con más accesos.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Inicio</label>
+                                <input type="date" id="chart3-start" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex-1 min-w-[110px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Fin</label>
+                                <input type="date" id="chart3-end" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                            </div>
+                            <div class="flex items-end gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+                                <button onclick="window.genChart3()" class="flex-1 sm:flex-none bg-cnciBlue text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center"><i class="fa-solid fa-play mr-1.5"></i> Generar</button>
+                                <button onclick="window.csvChart3()" class="flex-none bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:text-cnciBlue hover:border-cnciBlue transition-colors shadow-sm flex justify-center items-center" title="Exportar CSV"><i class="fa-solid fa-file-csv text-base"></i></button>
+                            </div>
+                        </div>
+                        <div class="relative h-[250px] md:h-[300px] w-full flex-grow flex flex-col justify-end">
+                            <div id="empty-chart3" class="absolute inset-0 flex flex-col items-center justify-center text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 z-10 transition-opacity">
+                                <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-300 mb-3 text-xl"><i class="fa-solid fa-earth-americas"></i></div>
+                                <p class="text-xs font-medium text-slate-500 max-w-[200px]">Selecciona las fechas y haz clic en Generar.</p>
+                            </div>
+                            <canvas id="canvasChart3" class="hidden-view"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 4. Matriz de Efectividad de FAQs -->
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-premium flex flex-col border border-slate-100 h-full">
+                        <div class="mb-5">
+                            <h3 class="font-black text-slate-800 text-lg leading-tight">Matriz de Efectividad de FAQs</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Relación entre Vistas (Eje X) y Likes (Eje Y).</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
+                            <div class="flex-1 w-full sm:min-w-[200px]">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Categoría a analizar</label>
+                                <select id="chart4-cat" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cnciBlue/50 text-xs md:text-sm font-medium">
+                                    <option value="ALL">Todas las categorías</option>
+                                    <!-- Se llenará vía JS -->
+                                </select>
+                            </div>
+                            <div class="flex items-end gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+                                <button onclick="window.genChart4()" class="flex-1 sm:flex-none bg-cnciBlue text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md flex justify-center items-center"><i class="fa-solid fa-play mr-1.5"></i> Analizar</button>
+                                <button onclick="window.csvChart4()" class="flex-none bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:text-cnciBlue hover:border-cnciBlue transition-colors shadow-sm flex justify-center items-center" title="Exportar CSV"><i class="fa-solid fa-file-csv text-base"></i></button>
+                            </div>
+                        </div>
+                        <div class="relative h-[250px] md:h-[300px] w-full flex-grow flex flex-col justify-end">
+                            <div id="empty-chart4" class="absolute inset-0 flex flex-col items-center justify-center text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 z-10 transition-opacity">
+                                <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-300 mb-3 text-xl"><i class="fa-solid fa-microscope"></i></div>
+                                <p class="text-xs font-medium text-slate-500 max-w-[200px]">Selecciona la categoría y haz clic en Analizar.</p>
+                            </div>
+                            <canvas id="canvasChart4" class="hidden-view"></canvas>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -647,8 +749,11 @@
         window.openedFaqId = null;
         window.listenersActive = false;
 
-        let chartC = null;
-        let chartL = null;
+        // Instancias del Dashboard Analítico
+        let chart1Inst = null;
+        let chart2Inst = null;
+        let chart3Inst = null;
+        let chart4Inst = null;
 
         // Configuración de Firebase
         const firebaseConfig = {
@@ -1382,59 +1487,350 @@
             }
         };
 
-        // LÓGICA DASHBOARD (Chart.js)
+        // LÓGICA DASHBOARD (Chart.js) - Inicialización On-Demand
         window.updateCharts = () => {
-            const canvasC = document.getElementById('chartTopClicks');
-            const canvasL = document.getElementById('chartTopLikes');
+            // Ya NO cargamos gráficas automáticamente para ahorrar lecturas de Firebase.
+            // Solo preparamos el selector de la Gráfica 4 (Matriz de Efectividad)
+            const catSelect = document.getElementById('chart4-cat');
+            if (catSelect && categoriesData.length > 0) {
+                const options = `<option value="ALL">Todas las categorías</option>` + 
+                                categoriesData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                catSelect.innerHTML = options;
+            }
+        };
+        // UTILITARIO: Función maestra para descargar CSV del Dashboard Analítico
+        window.downloadAnalyticCSV = (csvContent, filename) => {
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.showToast('Archivo descargado con éxito', 'success');
+        };
+        // ==========================================
+        // GRÁFICA 1: Tendencia de Tráfico Histórico
+        // ==========================================
+        window.genChart1 = async () => {
+            const startStr = document.getElementById('chart1-start').value;
+            const endStr = document.getElementById('chart1-end').value;
+            if (!startStr || !endStr) { window.showToast('Selecciona Fecha de Inicio y Fin', 'error'); return; }
+
+            const startD = new Date(startStr + 'T00:00:00');
+            const endD = new Date(endStr + 'T23:59:59');
             
-            if (!canvasC || !canvasL) return;
-            if (faqsData.length === 0) return;
+            document.getElementById('empty-chart1').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-3xl text-cnciBlue mb-3"></i><p class="text-xs text-slate-500">Consultando datos...</p>';
 
-            if (chartC) chartC.destroy();
-            if (chartL) chartL.destroy();
+            try {
+                const q = query(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'),
+                    where('timestamp', '>=', startD),
+                    where('timestamp', '<=', endD),
+                    orderBy('timestamp', 'asc')
+                );
+                const snap = await getDocs(q);
 
-            const byClicks = [...faqsData].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 5);
-            const byLikes = [...faqsData].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 5);
+                // Agrupamos por fecha
+                const counts = {};
+                snap.docs.forEach(doc => {
+                    const ts = doc.data().timestamp;
+                    if(ts) {
+                        const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+                        const dateKey = dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        counts[dateKey] = (counts[dateKey] || 0) + 1;
+                    }
+                });
 
-            const formatLabel = (txt) => (txt || '').length > 30 ? (txt || '').substring(0, 30) + '...' : (txt || 'Sin Título');
+                const labels = Object.keys(counts);
+                const dataValues = Object.values(counts);
 
-            chartC = new Chart(canvasC, {
-                type: 'bar',
-                data: {
-                    labels: byClicks.map(f => formatLabel(f.question)),
-                    datasets: [{
-                        label: 'Vistas',
-                        data: byClicks.map(f => f.clicks || 0),
-                        backgroundColor: '#2563eb',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
+                // Guardamos en memoria por si queremos exportar el CSV luego
+                window.chart1Data = { labels, dataValues };
+
+                document.getElementById('empty-chart1').classList.add('hidden-view');
+                const canvas = document.getElementById('canvasChart1');
+                canvas.classList.remove('hidden-view');
+
+                // Si ya existía una gráfica, la destruimos para evitar bugs visuales
+                if (chart1Inst) chart1Inst.destroy();
+                
+                chart1Inst = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total de Accesos',
+                            data: dataValues,
+                            borderColor: '#ff8500', // Puntos naranjas
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)', // Azul translúcido abajo
+                            borderWidth: 2,
+                            pointBackgroundColor: '#ff8500',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+                window.showToast(`Se cargaron ${snap.docs.length} sesiones.`, 'success');
+            } catch (e) { 
+                console.error(e); 
+                window.showToast('Error de conexión a la base de datos', 'error'); 
+                document.getElementById('empty-chart1').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-3xl text-red-400 mb-3"></i><p class="text-xs text-slate-500">Error al cargar.</p>';
+            }
+        };
+
+        window.csvChart1 = () => {
+            if(!window.chart1Data || window.chart1Data.labels.length === 0) { window.showToast('Primero genera la gráfica', 'info'); return; }
+            const headers = "Fecha,Total de Accesos\n";
+            const rows = window.chart1Data.labels.map((l, i) => `"${l}","${window.chart1Data.dataValues[i]}"`).join('\n');
+            window.downloadAnalyticCSV(headers + rows, `Tendencia_Trafico_${new Date().getTime()}.csv`);
+        };
+
+        // ==========================================
+        // GRÁFICA 2: Horarios de Mayor Demanda
+        // ==========================================
+        window.genChart2 = async () => {
+            const startStr = document.getElementById('chart2-start').value;
+            const endStr = document.getElementById('chart2-end').value;
+            if (!startStr || !endStr) { window.showToast('Selecciona Fecha de Inicio y Fin', 'error'); return; }
+
+            const startD = new Date(startStr + 'T00:00:00');
+            const endD = new Date(endStr + 'T23:59:59');
+            
+            document.getElementById('empty-chart2').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-3xl text-cnciBlue mb-3"></i><p class="text-xs text-slate-500">Analizando horarios...</p>';
+
+            try {
+                const q = query(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'),
+                    where('timestamp', '>=', startD),
+                    where('timestamp', '<=', endD)
+                );
+                const snap = await getDocs(q);
+
+                const hoursCount = Array(24).fill(0); 
+                snap.docs.forEach(doc => {
+                    const ts = doc.data().timestamp;
+                    if(ts) {
+                        const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+                        hoursCount[dateObj.getHours()]++;
+                    }
+                });
+
+                const labels = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+                window.chart2Data = { labels, dataValues: hoursCount };
+
+                document.getElementById('empty-chart2').classList.add('hidden-view');
+                const canvas = document.getElementById('canvasChart2');
+                canvas.classList.remove('hidden-view');
+
+                if (chart2Inst) chart2Inst.destroy();
+                
+                chart2Inst = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Frecuencia de Accesos',
+                            data: hoursCount,
+                            backgroundColor: '#ff8500', 
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+                window.showToast('Mapa de horarios generado', 'success');
+            } catch (e) { 
+                console.error(e); 
+                window.showToast('Error cargando mapa de calor', 'error'); 
+            }
+        };
+
+        window.csvChart2 = () => {
+            if(!window.chart2Data) { window.showToast('Primero genera la gráfica', 'info'); return; }
+            const headers = "Hora del Dia,Cantidad de Consultas\n";
+            const rows = window.chart2Data.labels.map((l, i) => `"${l}","${window.chart2Data.dataValues[i]}"`).join('\n');
+            window.downloadAnalyticCSV(headers + rows, `Horarios_Demanda_${new Date().getTime()}.csv`);
+        };
+
+        // ==========================================
+        // GRÁFICA 3: Mapa Demográfico (Top 10)
+        // ==========================================
+        window.genChart3 = async () => {
+            const startStr = document.getElementById('chart3-start').value;
+            const endStr = document.getElementById('chart3-end').value;
+            if (!startStr || !endStr) { window.showToast('Selecciona Fecha de Inicio y Fin', 'error'); return; }
+
+            const startD = new Date(startStr + 'T00:00:00');
+            const endD = new Date(endStr + 'T23:59:59');
+            
+            document.getElementById('empty-chart3').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-3xl text-cnciBlue mb-3"></i><p class="text-xs text-slate-500">Mapeando ciudades...</p>';
+
+            try {
+                const q = query(collection(db, 'artifacts', customAppId, 'public', 'data', 'sessions'),
+                    where('timestamp', '>=', startD),
+                    where('timestamp', '<=', endD)
+                );
+                const snap = await getDocs(q);
+
+                const cityCounts = {};
+                snap.docs.forEach(doc => {
+                    const data = doc.data();
+                    // Ignoramos registros sin ciudad para no manchar la gráfica
+                    if (data.city && data.city !== 'Desconocida') {
+                        const location = `${data.city}, ${data.region || ''}`;
+                        cityCounts[location] = (cityCounts[location] || 0) + 1;
+                    }
+                });
+
+                // Ordenar descendente y tomar Top 10
+                const sortedCities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const labels = sortedCities.map(item => item[0]);
+                const dataValues = sortedCities.map(item => item[1]);
+
+                window.chart3Data = { labels, dataValues };
+
+                document.getElementById('empty-chart3').classList.add('hidden-view');
+                const canvas = document.getElementById('canvasChart3');
+                canvas.classList.remove('hidden-view');
+
+                if (chart3Inst) chart3Inst.destroy();
+                
+                chart3Inst = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: ['#2563eb', '#1e40af', '#004aad', '#facc15', '#ff8500', '#3b82f6', '#60a5fa', '#93c5fd', '#fef08a', '#fdba74'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11, family: 'Poppins' } } }
+                        }
+                    }
+                });
+                
+                if(labels.length === 0) window.showToast('No hay ciudades registradas en esta fecha', 'info');
+                else window.showToast('Top 10 ciudades generado', 'success');
+
+            } catch (e) { 
+                console.error(e); 
+                window.showToast('Error cargando demografía', 'error'); 
+            }
+        };
+
+        window.csvChart3 = () => {
+            if(!window.chart3Data || window.chart3Data.labels.length === 0) { window.showToast('Primero genera la gráfica', 'info'); return; }
+            const headers = "Ciudad/Region,Total de Visitas\n";
+            const rows = window.chart3Data.labels.map((l, i) => `"${l.replace(/"/g, '""')}","${window.chart3Data.dataValues[i]}"`).join('\n');
+            window.downloadAnalyticCSV(headers + rows, `Demografia_Top10_${new Date().getTime()}.csv`);
+        };
+
+        // ==========================================
+        // GRÁFICA 4: Matriz de Efectividad de FAQs
+        // ==========================================
+        window.genChart4 = () => {
+            const catId = document.getElementById('chart4-cat').value;
+            // Recordatorio: faqsData ya está en memoria (Costo de Firebase: 0 lecturas)
+            
+            document.getElementById('empty-chart4').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-3xl text-cnciBlue mb-3"></i><p class="text-xs text-slate-500">Procesando matriz...</p>';
+
+            let filteredFaqs = faqsData;
+            if (catId !== 'ALL') {
+                filteredFaqs = faqsData.filter(f => f.categoryId === catId);
+            }
+
+            if (filteredFaqs.length === 0) {
+                window.showToast('No hay FAQs en esta categoría', 'info');
+                document.getElementById('empty-chart4').innerHTML = '<i class="fa-solid fa-folder-open text-3xl text-slate-300 mb-3"></i><p class="text-xs text-slate-500 font-medium">Categoría vacía.</p>';
+                return;
+            }
+
+            const scatterData = filteredFaqs.map(faq => {
+                const x = faq.clicks || 0; // Eje X: Vistas
+                const y = faq.likes || 0;  // Eje Y: Likes
+                
+                // Semáforo de efectividad UX/UI
+                let pointColor = '#94a3b8'; // Gris (Normal)
+                if (x > 100 && y < 5) pointColor = '#ef4444'; // Rojo (Crítico: muchas vistas, pocos likes)
+                else if (x > 100 && y > 20) pointColor = '#22c55e'; // Verde (Excelente)
+
+                return {
+                    x: x,
+                    y: y,
+                    title: faq.question || 'Sin título',
+                    backgroundColor: pointColor,
+                    faqRef: faq
+                };
             });
 
-            chartL = new Chart(canvasL, {
-                type: 'bar',
+            window.chart4Data = { scatterData };
+
+            document.getElementById('empty-chart4').classList.add('hidden-view');
+            const canvas = document.getElementById('canvasChart4');
+            canvas.classList.remove('hidden-view');
+
+            if (chart4Inst) chart4Inst.destroy();
+            
+            chart4Inst = new Chart(canvas, {
+                type: 'scatter',
                 data: {
-                    labels: byLikes.map(f => formatLabel(f.question)),
                     datasets: [{
-                        label: 'Likes',
-                        data: byLikes.map(f => f.likes || 0),
-                        backgroundColor: '#ff8500',
-                        borderRadius: 6
+                        label: 'FAQs (Vistas vs Likes)',
+                        data: scatterData,
+                        pointBackgroundColor: scatterData.map(d => d.backgroundColor),
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 1,
+                        pointRadius: 6,
+                        pointHoverRadius: 9
                     }]
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
+                options: { 
+                    responsive: true, 
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            padding: 12,
+                            titleFont: { family: 'Poppins', size: 13 },
+                            bodyFont: { family: 'Poppins', size: 12 },
+                            callbacks: {
+                                label: function(context) {
+                                    const pt = context.raw;
+                                    return [
+                                        pt.title,
+                                        `👁️ Vistas: ${pt.x}`,
+                                        `❤️ Likes: ${pt.y}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Vistas (Eje X)', font: { weight: 'bold' } }, beginAtZero: true },
+                        y: { title: { display: true, text: 'Likes (Eje Y)', font: { weight: 'bold' } }, beginAtZero: true }
+                    }
                 }
             });
+            window.showToast('Matriz de efectividad calculada', 'success');
+        };
+
+        window.csvChart4 = () => {
+            if(!window.chart4Data) { window.showToast('Primero analiza la matriz', 'info'); return; }
+            const headers = "Pregunta,Categoria,Vistas,Likes,Ratio Efectividad (%)\n";
+            const rows = window.chart4Data.scatterData.map(d => {
+                const catName = categoriesData.find(c => c.id === d.faqRef.categoryId)?.name || 'Sin categoria';
+                const ratio = d.x > 0 ? ((d.y / d.x) * 100).toFixed(2) : '0.00';
+                const cleanQ = String(d.title).replace(/"/g, '""');
+                return `"${cleanQ}","${catName}","${d.x}","${d.y}","${ratio}%"`;
+            }).join('\n');
+            window.downloadAnalyticCSV(headers + rows, `Matriz_Efectividad_${new Date().getTime()}.csv`);
         };
 
         // LÓGICA DATOS (Exportar / Importar / Descargar Plantilla CSV)
