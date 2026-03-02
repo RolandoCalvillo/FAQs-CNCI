@@ -94,7 +94,7 @@
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
 
     <!-- Navbar -->
-    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200/60 shadow-sm">
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200/60 shadow-sm relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 
@@ -111,7 +111,11 @@
                     <a href="https://www.office.com/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Office 365</a>
                     <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Biblioteca Virtual</a>
                     <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="hidden md:block text-sm font-medium text-gray-600 hover:text-cnciBlue transition-colors duration-200">Blackboard</a>
-                    <a href="#" class="block md:hidden text-gray-600 hover:text-cnciBlue transition-colors duration-200"><i class="fa-solid fa-bars text-xl"></i></a>
+                    
+                    <!-- Botón Hamburguesa (Móvil) corregido -->
+                    <button onclick="window.toggleMobileMenu()" class="block md:hidden text-gray-600 hover:text-cnciBlue transition-colors duration-200 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
                     
                     <!-- Admin Logged Info (Oculto por defecto) -->
                     <div id="admin-logged-info" class="hidden-view items-center gap-4 ml-2 pl-4 border-l border-gray-200">
@@ -123,6 +127,15 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Menú Móvil Desplegable (Nuevo) -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-200 shadow-xl animate__animated animate__fadeInDown animate__faster z-40">
+            <div class="flex flex-col px-6 py-5 space-y-4">
+                <a href="https://www.office.com/" target="_blank" class="text-base font-bold text-slate-700 hover:text-cnciBlue flex items-center gap-2"><i class="fa-brands fa-microsoft text-cnciBlue"></i> Office 365</a>
+                <a href="https://cnci.unlimitedlearning.io/" target="_blank" class="text-base font-bold text-slate-700 hover:text-cnciBlue flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-cnciBlue"></i> Biblioteca Virtual</a>
+                <a href="https://cnci.blackboard.com/ultra/" target="_blank" class="text-base font-bold text-slate-700 hover:text-cnciBlue flex items-center gap-2"><i class="fa-solid fa-chalkboard-user text-cnciBlue"></i> Blackboard</a>
             </div>
         </div>
     </nav>
@@ -806,6 +819,13 @@
                 toast.classList.replace('animate__fadeInRight', 'animate__fadeOutRight');
                 setTimeout(() => toast.remove(), 500); 
             }, 3000);
+        };
+        // Lógica del Menú Móvil (Hamburguesa)
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobile-menu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
         };
 
         // Lógica Funcional del Modal Auth
