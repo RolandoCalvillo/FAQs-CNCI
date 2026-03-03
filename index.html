@@ -762,11 +762,6 @@
                     <label class="block text-sm font-bold text-slate-700 mb-2">Nombre <span class="text-red-500">*</span></label>
                     <input type="text" id="cat-name" required placeholder="Ej. Pagos y Becas" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 focus:border-cnciBlue transition-all text-slate-800 font-medium">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">URL de Imagen Miniatura (Opcional)</label>
-                    <input type="url" id="cat-image" placeholder="https://..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cnciBlue/50 focus:border-cnciBlue transition-all text-slate-700">
-                    <p class="text-xs text-slate-500 mt-2">Recomendado: Imagen cuadrada con fondo transparente (PNG).</p>
-                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
                     <button type="button" onclick="window.closeModal('modal-category')" class="px-5 py-2.5 rounded-xl text-slate-600 font-semibold hover:bg-slate-100 transition-colors">Cancelar</button>
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-cnciBlue text-white font-bold shadow-lg shadow-cnciBlue/30 hover:bg-blue-700 transition-colors">Guardar</button>
@@ -1029,6 +1024,19 @@
             renderCategories();
         };
 
+        // UTILITARIO: Asignar icono según el nombre de la categoría
+        window.getCategoryIcon = (catName) => {
+            const name = (catName || '').toLowerCase();
+            if (name.includes('servicios') || name.includes('plantel')) return 'fa-building-columns';
+            if (name.includes('calificacion') || name.includes('historial')) return 'fa-file-signature';
+            if (name.includes('pago') || name.includes('beca') || name.includes('factura')) return 'fa-file-invoice-dollar';
+            if (name.includes('inscripci') || name.includes('baja') || name.includes('cambio')) return 'fa-file-pen';
+            if (name.includes('soporte') || name.includes('acceso') || name.includes('técnico') || name.includes('tecnico')) return 'fa-laptop-code';
+            if (name.includes('titulaci') || name.includes('trámite') || name.includes('tramite')) return 'fa-graduation-cap';
+            if (name.includes('asesor') || name.includes('tutor') || name.includes('contacto')) return 'fa-chalkboard-user';
+            return 'fa-folder'; 
+        };
+
         const renderCategories = () => {
             const container = document.getElementById('categories-container');
             if (!container) return;
@@ -1045,22 +1053,19 @@
             
             categoriesData.forEach(cat => {
                 const isActive = currentCategory === cat.id;
-                const hasImg = cat.imageUrl && cat.imageUrl.trim() !== '';
+                const autoIcon = window.getCategoryIcon(cat.name); // El cerebro en acción
                 
-                const iconHtml = hasImg 
-                    ? `<img src="${cat.imageUrl}" alt="${cat.name}" class="w-12 h-12 mb-2 object-contain transition-transform group-hover:scale-110 drop-shadow-sm" onerror="this.outerHTML='<div class=\\'w-12 h-12 flex items-center justify-center mb-2 rounded-full bg-slate-100 text-slate-400 group-hover:text-cnciBlue group-hover:bg-blue-50 transition-transform group-hover:scale-110\\'><i class=\\'fa-solid fa-folder text-xl\\'></i></div>'">` 
-                    : `<div class="w-12 h-12 flex items-center justify-center mb-2 rounded-full transition-transform group-hover:scale-110 ${isActive ? 'bg-cnciBlue text-white shadow-md' : 'bg-slate-100 text-slate-400 group-hover:text-cnciBlue group-hover:bg-blue-50'}"><i class="fa-solid fa-folder text-xl"></i></div>`;
-
                 html += `
                 <button onclick="window.setCategory('${cat.id}')" class="flex-shrink-0 w-[110px] h-[110px] sm:w-32 sm:h-32 flex flex-col items-center justify-center rounded-[1.5rem] border-2 transition-all snap-start group ${isActive ? 'border-cnciBlue bg-blue-50/50 text-cnciBlue shadow-md' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-300 hover:shadow-sm'}">
-                    ${iconHtml}
+                    <div class="w-12 h-12 flex items-center justify-center mb-2 rounded-full transition-transform group-hover:scale-110 ${isActive ? 'bg-cnciBlue text-white shadow-md' : 'bg-slate-100 text-slate-400 group-hover:text-cnciBlue group-hover:bg-blue-50'}">
+                        <i class="fa-solid ${autoIcon} text-xl"></i>
+                    </div>
                     <span class="text-xs sm:text-sm font-bold text-center leading-tight px-2 line-clamp-2">${cat.name}</span>
                 </button>`;
             });
             
             container.innerHTML = html;
         };
-
         // Función para cambiar de página
         window.goToPage = (page) => {
             currentPage = page;
@@ -1251,6 +1256,7 @@
             }
         };
         // LÓGICA ESTRUCTURA (Categorías Avanzadas y Áreas Simples)
+        // LÓGICA ESTRUCTURA (Categorías Avanzadas y Áreas Simples)
         window.renderSimple = () => {
             const catList = document.getElementById('admin-categories-list');
             if (catList) {
@@ -1258,14 +1264,14 @@
                     catList.innerHTML = '<li class="py-4 text-slate-500 italic">No hay categorías registradas.</li>';
                 } else {
                     catList.innerHTML = categoriesData.map(c => {
-                        const imgHtml = c.imageUrl 
-                            ? `<img src="${c.imageUrl}" class="w-10 h-10 rounded-lg object-contain bg-slate-50 border border-slate-100 p-1" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200\\'><i class=\\'fa-solid fa-folder\\'></i></div>'">` 
-                            : `<div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200"><i class="fa-solid fa-folder"></i></div>`;
+                        const autoIcon = window.getCategoryIcon(c.name);
                         
                         return `
                         <li class="py-3 flex justify-between items-center group">
                             <div class="flex items-center gap-3">
-                                ${imgHtml}
+                                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                                    <i class="fa-solid ${autoIcon}"></i>
+                                </div>
                                 <span class="font-medium text-slate-700">${c.name}</span>
                             </div>
                             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1308,7 +1314,6 @@
                 if (cat) {
                     document.getElementById('cat-id').value = cat.id;
                     document.getElementById('cat-name').value = cat.name;
-                    document.getElementById('cat-image').value = cat.imageUrl || '';
                 }
             } else {
                 document.getElementById('cat-id').value = '';
@@ -1321,19 +1326,18 @@
             e.preventDefault();
             const id = document.getElementById('cat-id').value;
             const name = document.getElementById('cat-name').value.trim();
-            const imageUrl = document.getElementById('cat-image').value.trim();
 
             if (!name) return;
 
             try {
                 if (id) {
                     await updateDoc(doc(db, 'artifacts', customAppId, 'public', 'data', 'categories', id), {
-                        name, imageUrl
+                        name
                     });
                     window.showToast('Categoría actualizada.', 'success');
                 } else {
                     await addDoc(collection(db, 'artifacts', customAppId, 'public', 'data', 'categories'), {
-                        name, imageUrl, createdAt: serverTimestamp()
+                        name, createdAt: serverTimestamp()
                     });
                     window.showToast('Categoría añadida.', 'success');
                 }
@@ -1343,6 +1347,7 @@
                 window.showToast('Ocurrió un error al guardar.', 'error');
             }
         };
+
 
         window.openSimpleModal = async (type) => {
             if(type === 'categories') return; 
