@@ -881,27 +881,6 @@
             }, 3000);
         };
 
-        // UTILITARIO: Forzar actualización de Caché (Borrón y cuenta nueva)
-        window.forceCacheRefresh = async (e) => {
-            const btn = e.currentTarget;
-            const icon = btn.querySelector('i');
-            icon.classList.add('fa-spin'); // Hacer que el ícono gire
-            
-            window.showToast('Descargando base de conocimientos...', 'info');
-            
-            // Destruimos la memoria local
-            localStorage.removeItem('cnci_faq_data_v1');
-            localStorage.removeItem('cnci_faq_time_v1');
-            
-            // Obligamos al sistema a consultar Firebase nuevamente
-            await loadClientDataWithCache();
-            
-            // Detenemos la animación y avisamos
-            icon.classList.remove('fa-spin');
-            window.showToast('Información actualizada al 100%.', 'success');
-        };
-
-        
         // Lógica del Menú Móvil (Hamburguesa)
         window.toggleMobileMenu = () => {
             const menu = document.getElementById('mobile-menu');
@@ -1144,7 +1123,9 @@
                     (f.answer && f.answer.toLowerCase().includes(searchQuery))
                 );
             }
-
+            // NUEVO: Ordenar el resultado por likes (de mayor a menor)
+            filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            
             // 2. Si no hay resultados
             if (filtered.length === 0) {
                 container.innerHTML = `
@@ -1527,7 +1508,7 @@
 
             // 1er Intento: Sacar la ciudad (Si falla por AdBlocker, no pasa nada)
             try {
-                const response = await fetch('[https://get.geojs.io/v1/ip/geo.json](https://get.geojs.io/v1/ip/geo.json)');
+                const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
                 if (response.ok) {
                     const data = await response.json();
                     city = data.city || 'Desconocida';
@@ -2295,36 +2276,35 @@
             const viewAdmin = document.getElementById('view-admin');
             const adminInfo = document.getElementById('admin-logged-info');
             const footerLoginBtn = document.getElementById('footer-login-btn');
-
+        
             if (user && !user.isAnonymous) {
-                // Usuario Admin Autenticado
+                // 1. Usuario Admin Autenticado
                 viewClient.classList.add('hidden-view');
                 viewAdmin.classList.remove('hidden-view');
                 adminInfo.classList.remove('hidden-view');
                 footerLoginBtn.classList.add('hidden-view');
                 
                 setTimeout(() => window.updateCharts(), 500);
-            } else {
-                // Usuario Normal o Visitante
+                if (!window.listenersActive) setupAdminListeners();
+                
+            } else if (user && user.isAnonymous) {
+                // 2. Cliente Anónimo (Ya autenticado exitosamente)
                 viewClient.classList.remove('hidden-view');
                 viewAdmin.classList.add('hidden-view');
                 adminInfo.classList.add('hidden-view');
                 footerLoginBtn.classList.remove('hidden-view');
-
-                if (!user) {
-                    signInAnonymously(auth).catch((error) => {
-                        console.error("Error al iniciar sesión anónima:", error);
-                    });
-                }
-            }
-            // Iniciar Lógica de Carga según perfil
-            if (user && !user.isAnonymous) {
-                // Es Admin: Tiempo real
-                if (!window.listenersActive) setupAdminListeners();
-            } else {
-                // Es Cliente Anónimo: Caché
+                
                 loadClientDataWithCache();
-                trackSession();
+                trackSession(); // Ahora es 100% seguro escribir en Firestore
+                
+            } else {
+                // 3. Visitante nuevo (No hay usuario aún)
+                viewClient.classList.remove('hidden-view');
+                viewAdmin.classList.add('hidden-view');
+                
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Error al iniciar sesión anónima:", error);
+                });
             }
         });
     </script>
